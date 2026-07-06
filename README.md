@@ -1,6 +1,17 @@
-# Harvester
+# Harvester (Fabric-Only)
 
-**Harvester** is a client-side Minecraft utility mod built with Fabric, optimized for Minecraft 26.2. Designed specifically to work seamlessly on restricted client environments like **Lunar Client**, it overrides inputs at the GLFW layer and uses refmap-free mixins to completely prevent common bootstrap crashes.
+**Harvester** is a client-side Minecraft utility mod built with **Fabric**, optimized for Minecraft 26.2. Designed specifically to work seamlessly on restricted client environments like **Lunar Client**, it overrides inputs at the GLFW layer and uses refmap-free mixins to completely prevent common bootstrap crashes.
+
+> [!IMPORTANT]
+> **This is a Fabric-only mod.** It will not work on Forge or NeoForge loaders.
+
+---
+
+## What's New in 1.0.0
+- **Farming Assist (Toggle: `K`)**: Left-clicking or right-clicking a mature crop instantly harvests it and replants matching seeds. Synchronized via server action packets to prevent desync/rollback loops.
+- **Fast Place (Toggle: `J`)**: Places blocks continuously every tick while holding right-click, bypassing the standard 4-tick cooldown.
+- **Dynamic Speedmine (Toggle: `V`)**: Cycles through custom speed multipliers (`OFF` → `1.4x` → `1.8x` → `2.2x` → `2.6x` → `3.0x` → `OFF`) with on-screen action bar notifications.
+- **Lunar Client Optimization**: Inputs hooked at GLFW level and refmap-free injection to resolve initialization crashes.
 
 ---
 
@@ -42,7 +53,7 @@ $env:JAVA_HOME="C:\Program Files\Zulu\zulu-25"; .\gradlew.bat clean build
 ```
 
 The compiled mod package will be located at:
-`fabric_speedmine/build/libs/speedmine-1.0.0.jar`
+`build/libs/speedmine-1.0.0.jar`
 
 ---
 
