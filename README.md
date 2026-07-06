@@ -9,11 +9,13 @@ Keywords: Minecraft, Fabric mod, client-side, anti-cheat, Lunar Client, Speedmin
 
 ---
 
+## What's New in 1.1.0
+- **Auto-Bridge (Toggle: `B`)**: Automatically places solid blocks from your hotbar beneath your feet and one block ahead in your movement direction. Never fall into lava again.
+
 ## What's New in 1.0.0
 - **Farming Assist (Toggle: `K`)**: Left-clicking or right-clicking a mature crop instantly harvests it and replants matching seeds. Synchronized via server action packets to prevent desync/rollback loops.
 - **Fast Place (Toggle: `J`)**: Places blocks continuously every tick while holding right-click, bypassing the standard 4-tick cooldown.
 - **Dynamic Speedmine (Toggle: `V`)**: Cycles through custom speed multipliers (`OFF` → `1.4x` → `1.8x` → `2.2x` → `2.6x` → `3.0x` → `OFF`) with on-screen action bar notifications.
-- **Auto-Bridge (Toggle: `B`)**: Automatically places solid blocks from your hotbar beneath your feet and one block ahead in your movement direction. Never fall into lava again.
 - **Lunar Client Optimization**: Inputs hooked at GLFW level and refmap-free injection to resolve initialization crashes.
 
 ---
