@@ -13,6 +13,7 @@ Keywords: Minecraft, Fabric mod, client-side, anti-cheat, Lunar Client, Speedmin
 - **Farming Assist (Toggle: `K`)**: Left-clicking or right-clicking a mature crop instantly harvests it and replants matching seeds. Synchronized via server action packets to prevent desync/rollback loops.
 - **Fast Place (Toggle: `J`)**: Places blocks continuously every tick while holding right-click, bypassing the standard 4-tick cooldown.
 - **Dynamic Speedmine (Toggle: `V`)**: Cycles through custom speed multipliers (`OFF` → `1.4x` → `1.8x` → `2.2x` → `2.6x` → `3.0x` → `OFF`) with on-screen action bar notifications.
+- **Auto-Bridge (Toggle: `B`)**: Automatically places solid blocks from your hotbar beneath your feet and one block ahead in your movement direction. Never fall into lava again.
 - **Lunar Client Optimization**: Inputs hooked at GLFW level and refmap-free injection to resolve initialization crashes.
 
 ---
@@ -33,11 +34,16 @@ Keywords: Minecraft, Fabric mod, client-side, anti-cheat, Lunar Client, Speedmin
 - Bypasses the vanilla 4-tick right-click placement cooldown.
 - While active, holding right-click places blocks continuously on every client tick.
 
+### 🌉 Auto-Bridge (Toggle: `B`)
+- **Walk-and-Place**: While moving, automatically places a solid block from your hotbar under your feet and one block ahead in your movement direction.
+- **Smart Block Selection**: Scans your hotbar for any placeable solid block (cobblestone, netherrack, dirt, etc.).
+- **All Dimensions**: Works in the Nether, Overworld, End — anywhere you need a safe path.
+
 ---
 
 ## Lunar Client Compatibility
 Unlike standard Fabric mods that rely on Fabric API's client-tick events and keybinding helpers (which are blocked or overridden by Lunar Client's bootloader), **Harvester**:
-- Intercepts raw keyboard inputs directly inside the `KeyboardHandler` (GLFW keycodes: `V`=86, `J`=74, `K`=75).
+- Intercepts raw keyboard inputs directly inside the `KeyboardHandler` (GLFW keycodes: `V`=86, `J`=74, `K`=75, `B`=66).
 - Employs `@Inject` annotations rather than `@Redirect` on cross-class targets, eliminating the need for complex runtime obfuscation refmaps.
 
 ---
