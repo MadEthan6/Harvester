@@ -1,6 +1,8 @@
-# Harvester (Fabric-Only)
+# Harvester (Fabric-Only Minecraft Mod)
 
-**Harvester** is a client-side Minecraft utility mod built with **Fabric**, optimized for Minecraft 26.2. Designed specifically to work seamlessly on restricted client environments like **Lunar Client**, it overrides inputs at the GLFW layer and uses refmap-free mixins to completely prevent common bootstrap crashes.
+**Harvester** is a powerful **client-side Minecraft utility mod** built with the **Fabric mod loader**, optimized for **Minecraft 26.2**. Designed specifically to work seamlessly on restricted client environments like **Lunar Client**, it serves as an advanced tool for players seeking **anti-cheat bypasses**, **fast mining**, and automated assistance. It overrides inputs at the GLFW layer and uses refmap-free mixins to completely prevent common bootstrap crashes, making it an ideal **Minecraft Fabric mod** for enhanced gameplay.
+
+Keywords: Minecraft, Fabric mod, client-side, anti-cheat, Lunar Client, Speedmine, Farming Assist, fast mining, fast place, utility mod, Minecraft 26.2, GitHub.
 
 > [!IMPORTANT]
 > **This is a Fabric-only mod.** It will not work on Forge or NeoForge loaders.
