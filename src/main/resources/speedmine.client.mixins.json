@@ -1,0 +1,19 @@
+{
+	"required": true,
+	"package": "com.example.client.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"refmap": "speedmine-refmap.json",
+	"client": [
+		"ExampleClientMixin",
+		"MultiPlayerGameModeAccessor",
+		"MultiPlayerGameModeMixin",
+		"KeyboardHandlerMixin",
+		"MinecraftMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}
