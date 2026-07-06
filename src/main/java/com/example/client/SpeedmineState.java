@@ -20,6 +20,7 @@ public class SpeedmineState {
 
     public static boolean fastPlaceEnabled = false;
     public static boolean farmingAssistEnabled = false;
+    public static boolean bridgingEnabled = false;
 
     /** Cycle to the next speed mode. */
     public static void cycle() {
