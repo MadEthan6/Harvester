@@ -88,5 +88,22 @@ public class KeyboardHandlerMixin {
                 }
             }
         }
+        if (action == 1 && event.key() == 71) {
+            Minecraft mc = Minecraft.getInstance();
+            if (mc.player != null && mc.gui.screen() == null) {
+                SpeedmineState.autoFeedEnabled = !SpeedmineState.autoFeedEnabled;
+                if (SpeedmineState.autoFeedEnabled) {
+                    mc.player.sendOverlayMessage(
+                        Component.literal("Auto Feed: ACTIVE")
+                            .withStyle(ChatFormatting.GREEN)
+                    );
+                } else {
+                    mc.player.sendOverlayMessage(
+                        Component.literal("Auto Feed: INACTIVE")
+                            .withStyle(ChatFormatting.RED)
+                    );
+                }
+            }
+        }
     }
 }
