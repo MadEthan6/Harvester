@@ -9,6 +9,9 @@ Keywords: Minecraft, Fabric mod, client-side, anti-cheat, Lunar Client, Speedmin
 
 ---
 
+## What's New in 1.2.0
+- **Auto Feed (Toggle: `G`)**: Keeps hunger and health full using inventory food. Intelligently selects the best food, handles golden apples in critical situations, and eats from the offhand automatically to avoid movement slowdown or mining interruption.
+
 ## What's New in 1.1.0
 - **Auto-Bridge (Toggle: `B`)**: Automatically places solid blocks from your hotbar beneath your feet and one block ahead in your movement direction. Never fall into lava again.
 
@@ -41,11 +44,17 @@ Keywords: Minecraft, Fabric mod, client-side, anti-cheat, Lunar Client, Speedmin
 - **Smart Block Selection**: Scans your hotbar for any placeable solid block (cobblestone, netherrack, dirt, etc.).
 - **All Dimensions**: Works in the Nether, Overworld, End — anywhere you need a safe path.
 
+### 🍖 Auto Feed (Toggle: `G`)
+- **Smart Feeding Strategy**: Automatically eats when hunger deficit is >= food nutrition. When injured, eats immediately to stay at 20 hunger for fast health regeneration.
+- **Critical Golden Apple Priority**: If health drops below 12 HP, prioritizes eating Golden Apples or Enchanted Golden Apples if available in the inventory.
+- **Seamless Offhand Mechanics**: Swaps the selected food to the offhand, eats it, and swaps back your original offhand item. This lets you mine or fight continuously while feeding.
+- **No Movement Slowdown**: Bypasses the vanilla eating slowness, allowing full-speed running, walking, or sprinting while eating.
+
 ---
 
 ## Lunar Client Compatibility
 Unlike standard Fabric mods that rely on Fabric API's client-tick events and keybinding helpers (which are blocked or overridden by Lunar Client's bootloader), **Harvester**:
-- Intercepts raw keyboard inputs directly inside the `KeyboardHandler` (GLFW keycodes: `V`=86, `J`=74, `K`=75, `B`=66).
+- Intercepts raw keyboard inputs directly inside the `KeyboardHandler` (GLFW keycodes: `V`=86, `J`=74, `K`=75, `B`=66, `G`=71).
 - Employs `@Inject` annotations rather than `@Redirect` on cross-class targets, eliminating the need for complex runtime obfuscation refmaps.
 
 ---
