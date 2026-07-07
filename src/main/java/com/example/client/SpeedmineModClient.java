@@ -12,6 +12,7 @@ import com.example.SpeedmineMod;
 public class SpeedmineModClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
-		SpeedmineMod.LOGGER.info("Speedmine Client Initialized!");
+		SpeedmineState.loadConfig();
+		SpeedmineMod.LOGGER.info("Speedmine Client Initialized and loaded config!");
 	}
 }
