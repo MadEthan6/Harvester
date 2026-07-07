@@ -9,6 +9,9 @@ Keywords: Minecraft, Fabric mod, client-side, anti-cheat, Lunar Client, Speedmin
 
 ---
 
+## What's New in 1.3.0
+- **Settings GUI (Toggle: `RSHIFT`)**: Brand new settings menu designed in clean Modern Dark Glassmorphism. Press `RSHIFT` to open. Directly toggle all features, cycle through Speedmine levels, change keybinds in-game, and persist settings automatically via config file saving.
+
 ## What's New in 1.2.0
 - **Auto Feed (Toggle: `G`)**: Keeps hunger and health full using inventory food. Intelligently selects the best food, handles golden apples in critical situations, and eats from the offhand automatically to avoid movement slowdown or mining interruption.
 
@@ -50,11 +53,18 @@ Keywords: Minecraft, Fabric mod, client-side, anti-cheat, Lunar Client, Speedmin
 - **Seamless Offhand Mechanics**: Swaps the selected food to the offhand, eats it, and swaps back your original offhand item. This lets you mine or fight continuously while feeding.
 - **No Movement Slowdown**: Bypasses the vanilla eating slowness, allowing full-speed running, walking, or sprinting while eating.
 
+### ⚙️ Settings GUI (Toggle: `RSHIFT`)
+- **Clickable GUI**: Change keybindings and toggle settings in a premium Dark Glassmorphism flat panel interface with smooth hover borders.
+- **Custom Key Rebinding**: Rebind any of the 5 main features to any GLFW key in-game by clicking the rebind button and pressing a key.
+- **Speedmine Level Cycle**: Click to cycle between multipliers (`1.4x`, `1.8x`, `2.2x`, `2.6x`, `3.0x`, `OFF`).
+- **Configuration Persistence**: Saves all your custom key bindings automatically into `config/harvester.properties` when you close the GUI. Settings are automatically loaded when Minecraft boots.
+
 ---
 
 ## Lunar Client Compatibility
 Unlike standard Fabric mods that rely on Fabric API's client-tick events and keybinding helpers (which are blocked or overridden by Lunar Client's bootloader), **Harvester**:
-- Intercepts raw keyboard inputs directly inside the `KeyboardHandler` (GLFW keycodes: `V`=86, `J`=74, `K`=75, `B`=66, `G`=71).
+- Intercepts raw keyboard inputs directly inside the `KeyboardHandler` (GLFW keycodes: `V`=86, `J`=74, `K`=75, `B`=66, `G`=71, `RSHIFT`=344).
+- Provides a custom graphical settings menu extending `net.minecraft.client.gui.screens.Screen` without third-party libraries (e.g. Cloth Config or ModMenu) which can cause Lunar Client loader conflicts.
 - Employs `@Inject` annotations rather than `@Redirect` on cross-class targets, eliminating the need for complex runtime obfuscation refmaps.
 
 ---
