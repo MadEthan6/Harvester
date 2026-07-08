@@ -44,3 +44,6 @@ replay_*.log
 
 # assistant configs
 .agents/
+
+# nested repos
+fabric_speedmine/
