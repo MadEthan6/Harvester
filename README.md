@@ -9,6 +9,9 @@ Keywords: Minecraft, Fabric mod, client-side, anti-cheat, Lunar Client, Speedmin
 
 ---
 
+## What's New in 1.4.0
+- **Aggressive Auto-Bridge (Toggle: `B`)**: Projects placement bounding box forward by 3.0x velocity, enabling fast diagonal movement. Features automatic hotbar replenishment of blocks from main inventory and desync prevention when slots empty.
+
 ## What's New in 1.3.0
 - **Settings GUI (Toggle: `RSHIFT`)**: Brand new settings menu designed in clean Modern Dark Glassmorphism. Press `RSHIFT` to open. Directly toggle all features, cycle through Speedmine levels, change keybinds in-game, and persist settings automatically via config file saving.
 
@@ -43,9 +46,10 @@ Keywords: Minecraft, Fabric mod, client-side, anti-cheat, Lunar Client, Speedmin
 - While active, holding right-click places blocks continuously on every client tick.
 
 ### 🌉 Auto-Bridge (Toggle: `B`)
-- **Walk-and-Place**: While moving, automatically places a solid block from your hotbar under your feet and one block ahead in your movement direction.
-- **Smart Block Selection**: Scans your hotbar for any placeable solid block (cobblestone, netherrack, dirt, etc.).
-- **All Dimensions**: Works in the Nether, Overworld, End — anywhere you need a safe path.
+- **Aggressive Projected Placing**: Projects your player bounding box forward by 3.0x velocity to place blocks ahead of where you are running/sprinting, preventing you from falling into lava or voids.
+- **Diagonal Corner Support**: Intelligently traces and fills diagonal path shapes, making diagonal bridging completely safe.
+- **Auto-Replenish Inventory Blocks**: Automatically detects empty hotbar slots and replenishes them by swapping block items from your main inventory (slots 9-35), providing seamless continuous bridging.
+- **Desync & Empty Slot Fix**: Prevents the client from swapping back to empty hotbar slots when a block stack runs out, eliminating slot packet desyncs.
 
 ### 🍖 Auto Feed (Toggle: `G`)
 - **Smart Feeding Strategy**: Automatically eats when hunger deficit is >= food nutrition. When injured, eats immediately to stay at 20 hunger for fast health regeneration.
@@ -82,7 +86,7 @@ $env:JAVA_HOME="C:\Program Files\Zulu\zulu-25"; .\gradlew.bat clean build
 ```
 
 The compiled mod package will be located at:
-`build/libs/speedmine-1.0.0.jar`
+`build/libs/speedmine-1.1.0.jar`
 
 ---
 
