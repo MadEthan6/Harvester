@@ -4,12 +4,13 @@
 	"compatibilityLevel": "JAVA_25",
 	"refmap": "speedmine-refmap.json",
 	"client": [
-		"ExampleClientMixin",
 		"MultiPlayerGameModeAccessor",
 		"MultiPlayerGameModeMixin",
 		"KeyboardHandlerMixin",
 		"MinecraftMixin",
-		"LocalPlayerMixin"
+		"LocalPlayerMixin",
+		"HudMixin",
+		"LevelRendererMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

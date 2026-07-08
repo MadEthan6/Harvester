@@ -20,7 +20,7 @@ public class HarvesterSettingsScreen extends Screen {
         extractor.fill(0, 0, this.width, this.height, 0x60000000);
 
         int width = 300;
-        int height = 180;
+        int height = 220;
         int x = (this.width - width) / 2;
         int y = (this.height - height) / 2;
 
@@ -33,10 +33,10 @@ public class HarvesterSettingsScreen extends Screen {
         // Settings title
         extractor.centeredText(this.font, "HARVESTER SETTINGS", x + width / 2, y + 10, 0xFF10B981);
         
-        String[] names = { "Speedmine", "Fast Place", "Farming Assist", "Auto-Bridge", "Auto Feed" };
+        String[] names = { "Speedmine", "Fast Place", "Farming Assist", "Auto-Bridge", "Auto Feed", "HUD Overlay", "Block Outline", "Stealth Mode" };
         
-        for (int i = 0; i < 5; i++) {
-            int rowY = y + 35 + i * 26;
+        for (int i = 0; i < 8; i++) {
+            int rowY = y + 30 + i * 22;
             
             // Feature Name
             extractor.text(this.font, names[i], x + 15, rowY + 5, 0xFFFFFFFF);
@@ -64,6 +64,18 @@ public class HarvesterSettingsScreen extends Screen {
                 statusColor = enabled ? 0xFF10B981 : 0xFFEF4444;
             } else if (i == 4) {
                 enabled = SpeedmineState.autoFeedEnabled;
+                statusText = enabled ? "ACTIVE" : "INACTIVE";
+                statusColor = enabled ? 0xFF10B981 : 0xFFEF4444;
+            } else if (i == 5) {
+                enabled = SpeedmineState.hudOverlayEnabled;
+                statusText = enabled ? "ACTIVE" : "INACTIVE";
+                statusColor = enabled ? 0xFF10B981 : 0xFFEF4444;
+            } else if (i == 6) {
+                enabled = SpeedmineState.blockOutlineEnabled;
+                statusText = enabled ? "ACTIVE" : "INACTIVE";
+                statusColor = enabled ? 0xFF10B981 : 0xFFEF4444;
+            } else if (i == 7) {
+                enabled = SpeedmineState.stealthMode;
                 statusText = enabled ? "ACTIVE" : "INACTIVE";
                 statusColor = enabled ? 0xFF10B981 : 0xFFEF4444;
             }
@@ -111,12 +123,12 @@ public class HarvesterSettingsScreen extends Screen {
         double mouseY = event.y();
 
         int width = 300;
-        int height = 180;
+        int height = 220;
         int x = (this.width - width) / 2;
         int y = (this.height - height) / 2;
 
-        for (int i = 0; i < 5; i++) {
-            int rowY = y + 35 + i * 26;
+        for (int i = 0; i < 8; i++) {
+            int rowY = y + 30 + i * 22;
 
             int btnX = x + 120;
             int btnW = (i == 0) ? 40 : 65;
@@ -137,6 +149,13 @@ public class HarvesterSettingsScreen extends Screen {
                     SpeedmineState.bridgingEnabled = !SpeedmineState.bridgingEnabled;
                 } else if (i == 4) {
                     SpeedmineState.autoFeedEnabled = !SpeedmineState.autoFeedEnabled;
+                } else if (i == 5) {
+                    SpeedmineState.hudOverlayEnabled = !SpeedmineState.hudOverlayEnabled;
+                } else if (i == 6) {
+                    SpeedmineState.blockOutlineEnabled = !SpeedmineState.blockOutlineEnabled;
+                } else if (i == 7) {
+                    SpeedmineState.stealthMode = !SpeedmineState.stealthMode;
+                    SpeedmineState.clampSpeedIndexUnderStealth();
                 }
                 return true;
             }
@@ -166,7 +185,9 @@ public class HarvesterSettingsScreen extends Screen {
         if (listeningRow != -1) {
             int keycode = event.key();
             if (keycode != 256) { // escape cancels
-                setKeycodeForIndex(listeningRow, keycode);
+                if (SpeedmineState.isValidKeycode(keycode)) {
+                    setKeycodeForIndex(listeningRow, keycode);
+                }
             }
             listeningRow = -1;
             return true;
@@ -186,18 +207,29 @@ public class HarvesterSettingsScreen extends Screen {
         if (index == 2) return SpeedmineState.farmingAssistKey;
         if (index == 3) return SpeedmineState.bridgingKey;
         if (index == 4) return SpeedmineState.autoFeedKey;
+        if (index == 5) return SpeedmineState.hudOverlayKey;
+        if (index == 6) return SpeedmineState.blockOutlineKey;
+        if (index == 7) return SpeedmineState.stealthModeKey;
         return 0;
     }
 
     private void setKeycodeForIndex(int index, int keycode) {
+        if (!SpeedmineState.isValidKeycode(keycode)) return;
         if (index == 0) SpeedmineState.speedmineKey = keycode;
         if (index == 1) SpeedmineState.fastPlaceKey = keycode;
         if (index == 2) SpeedmineState.farmingAssistKey = keycode;
         if (index == 3) SpeedmineState.bridgingKey = keycode;
         if (index == 4) SpeedmineState.autoFeedKey = keycode;
+        if (index == 5) SpeedmineState.hudOverlayKey = keycode;
+        if (index == 6) SpeedmineState.blockOutlineKey = keycode;
+        if (index == 7) {
+            SpeedmineState.stealthModeKey = keycode;
+            SpeedmineState.clampSpeedIndexUnderStealth();
+        }
     }
 
     private String getKeyName(int key) {
+        if (key == 0) return "NONE";
         if (key >= 65 && key <= 90) return String.valueOf((char) key);
         if (key >= 48 && key <= 57) return String.valueOf((char) key);
         switch (key) {

@@ -14,6 +14,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.inventory.ContainerInput;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Final;
@@ -48,6 +50,24 @@ public abstract class MinecraftMixin {
             this.rightClickDelay = 0;
         }
 
+        // Process pending Farming Assist replant queue
+        if (SpeedmineState.pendingReplantPos != null && this.player != null && this.player.level() != null) {
+            if (SpeedmineState.pendingReplantTimeout > 0) {
+                SpeedmineState.pendingReplantTimeout--;
+                BlockPos pos = SpeedmineState.pendingReplantPos;
+                if (this.player.level().getBlockState(pos).isAir()) {
+                    speedmine_performReplant(pos, SpeedmineState.pendingReplantSeed);
+                    SpeedmineState.pendingReplantPos = null;
+                    SpeedmineState.pendingReplantSeed = null;
+                    SpeedmineState.pendingReplantTimeout = 0;
+                }
+            } else {
+                SpeedmineState.pendingReplantPos = null;
+                SpeedmineState.pendingReplantSeed = null;
+                SpeedmineState.pendingReplantTimeout = 0;
+            }
+        }
+
         // Bridging logic
         if (SpeedmineState.bridgingEnabled && this.player != null && this.gameMode != null && !this.speedmine_isBridging) {
             this.speedmine_isBridging = true;
@@ -69,47 +89,80 @@ public abstract class MinecraftMixin {
         double horizontalSpeed = Math.sqrt(delta.x * delta.x + delta.z * delta.z);
         if (horizontalSpeed < 0.01) return;
 
+        // Auto-replenish empty hotbar slots from main inventory
+        speedmine_replenishHotbarBlocks(p);
+
         // Find a solid block in the hotbar
         int blockSlot = speedmine_findSolidBlockSlot(p);
         if (blockSlot == -1) return;
 
         int originalSlot = p.getInventory().getSelectedSlot();
-
-        // Position directly below the player's feet
-        BlockPos feetPos = p.blockPosition();
-        BlockPos belowFeet = feetPos.below();
-
-        // Position one block ahead in movement direction
-        double angle = Math.atan2(delta.z, delta.x);
-        int dx = (int) Math.round(Math.cos(angle));
-        int dz = (int) Math.round(Math.sin(angle));
-        BlockPos ahead = feetPos.offset(dx, 0, dz);
-        BlockPos belowAhead = ahead.below();
-
         boolean placed = false;
 
-        // Place block below feet if it's air/liquid
-        if (speedmine_canPlaceAt(p, belowFeet)) {
-            if (!placed) {
-                speedmine_swapToSlot(p, blockSlot);
-                placed = true;
+        // Position directly below the player's feet
+        int y = p.blockPosition().getY() - 1;
+
+        // Project bounding box forward by 3.0x velocity to place ahead
+        AABB box = p.getBoundingBox();
+        AABB checkArea = box.expandTowards(delta.x * 3.0, 0, delta.z * 3.0);
+
+        int minX = (int) Math.floor(checkArea.minX);
+        int maxX = (int) Math.floor(checkArea.maxX);
+        int minZ = (int) Math.floor(checkArea.minZ);
+        int maxZ = (int) Math.floor(checkArea.maxZ);
+
+        for (int xVal = minX; xVal <= maxX; xVal++) {
+            for (int zVal = minZ; zVal <= maxZ; zVal++) {
+                BlockPos targetPos = new BlockPos(xVal, y, zVal);
+                if (speedmine_canPlaceAt(p, targetPos)) {
+                    // Check if current slot ran out of blocks
+                    if (placed && p.getInventory().getItem(blockSlot).isEmpty()) {
+                        blockSlot = speedmine_findSolidBlockSlot(p);
+                        if (blockSlot == -1) break;
+                        speedmine_swapToSlot(p, blockSlot);
+                    }
+
+                    if (!placed) {
+                        speedmine_swapToSlot(p, blockSlot);
+                        placed = true;
+                    }
+                    speedmine_placeBlockAt(p, targetPos);
+                }
             }
-            speedmine_placeBlockAt(p, belowFeet);
         }
 
-        // Place block below the ahead position if it's air/liquid
-        if (speedmine_canPlaceAt(p, belowAhead)) {
-            if (!placed) {
-                speedmine_swapToSlot(p, blockSlot);
-                placed = true;
-            }
-            speedmine_placeBlockAt(p, belowAhead);
-        }
-
-        // Restore original slot
+        // Restore original slot only if it is not empty
         if (placed) {
-            p.getInventory().setSelectedSlot(originalSlot);
-            p.connection.send(new ServerboundSetCarriedItemPacket(originalSlot));
+            ItemStack originalStack = p.getInventory().getItem(originalSlot);
+            if (!originalStack.isEmpty()) {
+                p.getInventory().setSelectedSlot(originalSlot);
+                p.connection.send(new ServerboundSetCarriedItemPacket(originalSlot));
+            }
+        }
+    }
+
+    @Unique
+    private void speedmine_replenishHotbarBlocks(LocalPlayer p) {
+        // Check if any hotbar slot is empty
+        for (int hotbarSlot = 0; hotbarSlot < 9; hotbarSlot++) {
+            ItemStack hotbarStack = p.getInventory().getItem(hotbarSlot);
+            if (hotbarStack.isEmpty()) {
+                // Find a block in main inventory (9-35)
+                for (int mainSlot = 9; mainSlot < 36; mainSlot++) {
+                    ItemStack mainStack = p.getInventory().getItem(mainSlot);
+                    if (!mainStack.isEmpty() && mainStack.getItem() instanceof BlockItem) {
+                        // Swap it to the empty hotbar slot
+                        this.gameMode.handleContainerInput(
+                            p.containerMenu.containerId,
+                            mainSlot,
+                            hotbarSlot,
+                            ContainerInput.SWAP,
+                            p
+                        );
+                        break; // Move to checking next hotbar slot
+                    }
+                }
+            }
         }
     }
 
@@ -127,7 +180,7 @@ public abstract class MinecraftMixin {
     @Unique
     private boolean speedmine_canPlaceAt(LocalPlayer p, BlockPos pos) {
         BlockState state = p.level().getBlockState(pos);
-        return state.isAir() || !state.getFluidState().isEmpty();
+        return state.isAir() || state.getBlock() instanceof net.minecraft.world.level.block.LiquidBlock;
     }
 
     @Unique
@@ -157,5 +210,46 @@ public abstract class MinecraftMixin {
                 return;
             }
         }
+    }
+
+    @Unique
+    private void speedmine_performReplant(BlockPos pos, net.minecraft.world.item.Item seedItem) {
+        LocalPlayer p = this.player;
+        if (p == null || this.gameMode == null) return;
+
+        if (p.getOffhandItem().is(seedItem)) {
+            net.minecraft.world.phys.BlockHitResult hitResult = new net.minecraft.world.phys.BlockHitResult(
+                new Vec3(pos.getX() + 0.5, pos.getY() - 0.5, pos.getZ() + 0.5),
+                Direction.UP,
+                pos.below(),
+                false
+            );
+            this.gameMode.useItemOn(p, InteractionHand.OFF_HAND, hitResult);
+            return;
+        }
+
+        int seedSlot = -1;
+        for (int i = 0; i < 9; i++) {
+            if (p.getInventory().getItem(i).is(seedItem)) {
+                seedSlot = i;
+                break;
+            }
+        }
+        if (seedSlot == -1) return;
+
+        int originalSlot = p.getInventory().getSelectedSlot();
+        p.getInventory().setSelectedSlot(seedSlot);
+        p.connection.send(new ServerboundSetCarriedItemPacket(seedSlot));
+
+        net.minecraft.world.phys.BlockHitResult hitResult = new net.minecraft.world.phys.BlockHitResult(
+            new Vec3(pos.getX() + 0.5, pos.getY() - 0.5, pos.getZ() + 0.5),
+            Direction.UP,
+            pos.below(),
+            false
+        );
+        this.gameMode.useItemOn(p, InteractionHand.MAIN_HAND, hitResult);
+
+        p.getInventory().setSelectedSlot(originalSlot);
+        p.connection.send(new ServerboundSetCarriedItemPacket(originalSlot));
     }
 }

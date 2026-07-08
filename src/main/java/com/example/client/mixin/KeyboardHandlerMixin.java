@@ -19,17 +19,23 @@ public class KeyboardHandlerMixin {
         // action == 1 means key pressed (GLFW_PRESS)
         if (action == 1) {
             Minecraft mc = Minecraft.getInstance();
-            if (mc.player != null && mc.gui.screen() == null) {
-                // Open Settings GUI (Right Shift = 344)
-                if (event.key() == 344) {
-                    mc.setScreenAndShow(new com.example.client.HarvesterSettingsScreen());
-                    return;
-                }
+            if (mc == null || mc.player == null || mc.gui == null || mc.level == null) return;
+            if (mc.gui.screen() != null) return;
 
-                // Toggle Speedmine
-                if (event.key() == SpeedmineState.speedmineKey) {
-                    SpeedmineState.cycle();
-                    String label = SpeedmineState.getLabel();
+            int key = event.key();
+            if (!SpeedmineState.isValidKeycode(key)) return;
+
+            // Open Settings GUI (Right Shift = 344)
+            if (key == 344) {
+                mc.setScreenAndShow(new com.example.client.HarvesterSettingsScreen());
+                return;
+            }
+
+            // Toggle Speedmine
+            if (key == SpeedmineState.speedmineKey && SpeedmineState.speedmineKey != 0) {
+                SpeedmineState.cycle();
+                String label = SpeedmineState.getLabel();
+                if (mc.player != null) {
                     if (SpeedmineState.enabled) {
                         mc.player.sendOverlayMessage(
                             Component.literal("Speedmine: " + label)
@@ -42,10 +48,12 @@ public class KeyboardHandlerMixin {
                         );
                     }
                 }
+            }
 
-                // Toggle Fast Place
-                if (event.key() == SpeedmineState.fastPlaceKey) {
-                    SpeedmineState.fastPlaceEnabled = !SpeedmineState.fastPlaceEnabled;
+            // Toggle Fast Place
+            if (key == SpeedmineState.fastPlaceKey && SpeedmineState.fastPlaceKey != 0) {
+                SpeedmineState.fastPlaceEnabled = !SpeedmineState.fastPlaceEnabled;
+                if (mc.player != null) {
                     if (SpeedmineState.fastPlaceEnabled) {
                         mc.player.sendOverlayMessage(
                             Component.literal("Fast Place: ACTIVE")
@@ -58,10 +66,12 @@ public class KeyboardHandlerMixin {
                         );
                     }
                 }
+            }
 
-                // Toggle Farming Assist
-                if (event.key() == SpeedmineState.farmingAssistKey) {
-                    SpeedmineState.farmingAssistEnabled = !SpeedmineState.farmingAssistEnabled;
+            // Toggle Farming Assist
+            if (key == SpeedmineState.farmingAssistKey && SpeedmineState.farmingAssistKey != 0) {
+                SpeedmineState.farmingAssistEnabled = !SpeedmineState.farmingAssistEnabled;
+                if (mc.player != null) {
                     if (SpeedmineState.farmingAssistEnabled) {
                         mc.player.sendOverlayMessage(
                             Component.literal("Farming Assist: ACTIVE")
@@ -74,10 +84,12 @@ public class KeyboardHandlerMixin {
                         );
                     }
                 }
+            }
 
-                // Toggle Auto-Bridge
-                if (event.key() == SpeedmineState.bridgingKey) {
-                    SpeedmineState.bridgingEnabled = !SpeedmineState.bridgingEnabled;
+            // Toggle Auto-Bridge
+            if (key == SpeedmineState.bridgingKey && SpeedmineState.bridgingKey != 0) {
+                SpeedmineState.bridgingEnabled = !SpeedmineState.bridgingEnabled;
+                if (mc.player != null) {
                     if (SpeedmineState.bridgingEnabled) {
                         mc.player.sendOverlayMessage(
                             Component.literal("Bridge: ACTIVE")
@@ -90,10 +102,12 @@ public class KeyboardHandlerMixin {
                         );
                     }
                 }
+            }
 
-                // Toggle Auto Feed
-                if (event.key() == SpeedmineState.autoFeedKey) {
-                    SpeedmineState.autoFeedEnabled = !SpeedmineState.autoFeedEnabled;
+            // Toggle Auto Feed
+            if (key == SpeedmineState.autoFeedKey && SpeedmineState.autoFeedKey != 0) {
+                SpeedmineState.autoFeedEnabled = !SpeedmineState.autoFeedEnabled;
+                if (mc.player != null) {
                     if (SpeedmineState.autoFeedEnabled) {
                         mc.player.sendOverlayMessage(
                             Component.literal("Auto Feed: ACTIVE")
@@ -102,6 +116,61 @@ public class KeyboardHandlerMixin {
                     } else {
                         mc.player.sendOverlayMessage(
                             Component.literal("Auto Feed: INACTIVE")
+                                .withStyle(ChatFormatting.RED)
+                        );
+                    }
+                }
+            }
+
+            // Toggle HUD Overlay
+            if (key == SpeedmineState.hudOverlayKey && SpeedmineState.hudOverlayKey != 0) {
+                SpeedmineState.hudOverlayEnabled = !SpeedmineState.hudOverlayEnabled;
+                if (mc.player != null) {
+                    if (SpeedmineState.hudOverlayEnabled) {
+                        mc.player.sendOverlayMessage(
+                            Component.literal("HUD Overlay: ACTIVE")
+                                .withStyle(ChatFormatting.GREEN)
+                        );
+                    } else {
+                        mc.player.sendOverlayMessage(
+                            Component.literal("HUD Overlay: INACTIVE")
+                                .withStyle(ChatFormatting.RED)
+                        );
+                    }
+                }
+            }
+
+            // Toggle Block Outline
+            if (key == SpeedmineState.blockOutlineKey && SpeedmineState.blockOutlineKey != 0) {
+                SpeedmineState.blockOutlineEnabled = !SpeedmineState.blockOutlineEnabled;
+                if (mc.player != null) {
+                    if (SpeedmineState.blockOutlineEnabled) {
+                        mc.player.sendOverlayMessage(
+                            Component.literal("Block Outline: ACTIVE")
+                                .withStyle(ChatFormatting.GREEN)
+                        );
+                    } else {
+                        mc.player.sendOverlayMessage(
+                            Component.literal("Block Outline: INACTIVE")
+                                .withStyle(ChatFormatting.RED)
+                        );
+                    }
+                }
+            }
+
+            // Toggle Stealth Mode
+            if (key == SpeedmineState.stealthModeKey && SpeedmineState.stealthModeKey != 0) {
+                SpeedmineState.stealthMode = !SpeedmineState.stealthMode;
+                SpeedmineState.clampSpeedIndexUnderStealth();
+                if (mc.player != null) {
+                    if (SpeedmineState.stealthMode) {
+                        mc.player.sendOverlayMessage(
+                            Component.literal("Stealth Mode: ACTIVE")
+                                .withStyle(ChatFormatting.GREEN)
+                        );
+                    } else {
+                        mc.player.sendOverlayMessage(
+                            Component.literal("Stealth Mode: INACTIVE")
                                 .withStyle(ChatFormatting.RED)
                         );
                     }

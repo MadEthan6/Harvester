@@ -19,6 +19,7 @@ public abstract class HudMixin {
 
     @Inject(method = "extractRenderState", at = @At("TAIL"))
     private void extractSpeedmineOverlay(GuiGraphicsExtractor extractor, DeltaTracker deltaTracker, CallbackInfo ci) {
+        if (!SpeedmineState.hudOverlayEnabled) return;
         int color = SpeedmineState.enabled ? 0xFF00FF00 : 0xFFFF0000;
         String text = SpeedmineState.enabled ? "Speedmine: ACTIVE" : "Speedmine: INACTIVE";
         extractor.text(this.getFont(), text, 10, 10, color);

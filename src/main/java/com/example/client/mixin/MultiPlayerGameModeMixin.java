@@ -64,7 +64,11 @@ public abstract class MultiPlayerGameModeMixin {
     @Inject(method = "continueDestroyBlock", at = @At("HEAD"))
     private void onContinueDestroyBlockHead(BlockPos pos, Direction direction, CallbackInfoReturnable<Boolean> cir) {
         if (SpeedmineState.enabled) {
-            this.destroyDelay = 0;
+            if (SpeedmineState.stealthMode) {
+                this.destroyDelay = (int) (Math.random() * 3) + 1;
+            } else {
+                this.destroyDelay = 0;
+            }
         }
         this.speedmine_previousProgress = this.destroyProgress;
     }
@@ -79,10 +83,17 @@ public abstract class MultiPlayerGameModeMixin {
         if (SpeedmineState.enabled && this.isDestroying) {
             float vanillaIncrement = this.destroyProgress - this.speedmine_previousProgress;
             if (vanillaIncrement > 0.0f) {
-                // Since multiplier is e.g. 1.4f, the extra fraction is multiplier - 1.0f (e.g. 0.4f).
-                this.destroyProgress += vanillaIncrement * (SpeedmineState.multiplier - 1.0f);
+                float mult = SpeedmineState.multiplier;
+                if (SpeedmineState.stealthMode && mult > 1.4f) {
+                    mult = 1.4f;
+                }
+                this.destroyProgress += vanillaIncrement * (mult - 1.0f);
             }
-            this.destroyDelay = 0;
+            if (SpeedmineState.stealthMode) {
+                this.destroyDelay = (int) (Math.random() * 3) + 1;
+            } else {
+                this.destroyDelay = 0;
+            }
         }
     }
 
@@ -93,7 +104,11 @@ public abstract class MultiPlayerGameModeMixin {
     @Inject(method = "destroyBlock", at = @At("RETURN"))
     private void onDestroyBlockReturn(BlockPos pos, CallbackInfoReturnable<Boolean> cir) {
         if (SpeedmineState.enabled) {
-            this.destroyDelay = 0;
+            if (SpeedmineState.stealthMode) {
+                this.destroyDelay = (int) (Math.random() * 3) + 1;
+            } else {
+                this.destroyDelay = 0;
+            }
         }
     }
 
@@ -104,10 +119,16 @@ public abstract class MultiPlayerGameModeMixin {
     @Inject(method = "startDestroyBlock", at = @At("RETURN"))
     private void onStartDestroyBlockReturn(BlockPos pos, Direction direction, CallbackInfoReturnable<Boolean> cir) {
         if (SpeedmineState.enabled && this.isDestroying) {
-            // The initial destroyProgress was set by startDestroyBlock.
-            // Boost it by the dynamic multiplier.
-            this.destroyProgress *= SpeedmineState.multiplier;
-            this.destroyDelay = 0;
+            float mult = SpeedmineState.multiplier;
+            if (SpeedmineState.stealthMode && mult > 1.4f) {
+                mult = 1.4f;
+            }
+            this.destroyProgress *= mult;
+            if (SpeedmineState.stealthMode) {
+                this.destroyDelay = (int) (Math.random() * 3) + 1;
+            } else {
+                this.destroyDelay = 0;
+            }
         }
     }
 
@@ -154,84 +175,17 @@ public abstract class MultiPlayerGameModeMixin {
 
         this.speedmine_isFarming = true;
         try {
-            // 1. Send block-break packet to server so the harvest is registered server-side
+            // 1. Send start break packet to server so the harvest is registered server-side
             mc.player.connection.send(new ServerboundPlayerActionPacket(
                 ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK,
                 pos,
                 Direction.DOWN
             ));
 
-            // 2. Destroy/Harvest crop client-side
-            boolean destroyed = this.destroyBlock(pos);
-            if (!destroyed) return false;
-
-            // 2. Check offhand first
-            if (mc.player.getOffhandItem().is(seedItem)) {
-                BlockHitResult hitResult = new BlockHitResult(
-                    new Vec3(pos.getX() + 0.5, pos.getY() - 0.5, pos.getZ() + 0.5),
-                    Direction.UP,
-                    pos.below(),
-                    false
-                );
-                this.useItemOn(mc.player, InteractionHand.OFF_HAND, hitResult);
-                return true;
-            }
-
-            // 3. Find seed in main inventory/hotbar
-            int seedSlot = speedmine_findSeedSlot(mc.player.getInventory(), seedItem);
-            if (seedSlot == -1) {
-                return true; // Harvested, but cannot replant
-            }
-
-            int originalSlot = mc.player.getInventory().getSelectedSlot();
-            boolean isHotbar = (seedSlot < 9);
-
-            if (isHotbar) {
-                // Swap slot
-                mc.player.getInventory().setSelectedSlot(seedSlot);
-                mc.player.connection.send(new ServerboundSetCarriedItemPacket(seedSlot));
-
-                // Replant
-                BlockHitResult hitResult = new BlockHitResult(
-                    new Vec3(pos.getX() + 0.5, pos.getY() - 0.5, pos.getZ() + 0.5),
-                    Direction.UP,
-                    pos.below(),
-                    false
-                );
-                this.useItemOn(mc.player, InteractionHand.MAIN_HAND, hitResult);
-
-                // Restore slot
-                mc.player.getInventory().setSelectedSlot(originalSlot);
-                mc.player.connection.send(new ServerboundSetCarriedItemPacket(originalSlot));
-            } else {
-                // Swap item in main inventory to active hotbar slot
-                int containerSlotId = seedSlot;
-                this.handleContainerInput(
-                    mc.player.containerMenu.containerId,
-                    containerSlotId,
-                    originalSlot,
-                    net.minecraft.world.inventory.ContainerInput.SWAP,
-                    mc.player
-                );
-
-                // Replant
-                BlockHitResult hitResult = new BlockHitResult(
-                    new Vec3(pos.getX() + 0.5, pos.getY() - 0.5, pos.getZ() + 0.5),
-                    Direction.UP,
-                    pos.below(),
-                    false
-                );
-                this.useItemOn(mc.player, InteractionHand.MAIN_HAND, hitResult);
-
-                // Swap back
-                this.handleContainerInput(
-                    mc.player.containerMenu.containerId,
-                    containerSlotId,
-                    originalSlot,
-                    net.minecraft.world.inventory.ContainerInput.SWAP,
-                    mc.player
-                );
-            }
+            // 2. Queue replanting
+            SpeedmineState.pendingReplantPos = pos.immutable();
+            SpeedmineState.pendingReplantSeed = seedItem;
+            SpeedmineState.pendingReplantTimeout = 10;
             return true;
         } finally {
             this.speedmine_isFarming = false;
@@ -250,16 +204,5 @@ public abstract class MultiPlayerGameModeMixin {
             return Items.BEETROOT_SEEDS;
         }
         return null;
-    }
-
-    @Unique
-    private int speedmine_findSeedSlot(net.minecraft.world.entity.player.Inventory inventory, Item seedItem) {
-        for (int i = 0; i < 36; i++) {
-            ItemStack stack = inventory.getItem(i);
-            if (!stack.isEmpty() && stack.is(seedItem)) {
-                return i;
-            }
-        }
-        return -1;
     }
 }

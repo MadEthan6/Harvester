@@ -44,7 +44,7 @@ public abstract class LevelRendererMixin {
         LevelRenderState levelRenderState,
         CallbackInfo ci
     ) {
-        if (SpeedmineState.enabled) {
+        if (SpeedmineState.enabled && SpeedmineState.blockOutlineEnabled) {
             Minecraft mc = Minecraft.getInstance();
             if (mc.gameMode != null && mc.level != null) {
                 BlockPos destroyPos = ((MultiPlayerGameModeAccessor) mc.gameMode).getDestroyBlockPos();

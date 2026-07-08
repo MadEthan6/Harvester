@@ -2,14 +2,14 @@
 	"schemaVersion": 1,
 	"id": "speedmine",
 	"version": "${version}",
-	"name": "Harvester",
+	"name": "speed Harvfester",
 	"description": "A client-side Minecraft Fabric mod for accelerated mining, farming assist, fast place, and basic anti-cheat bypasses. Optimized for Lunar Client.",
 	"authors": [
 		"MadEthan6"
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"sources": "https://github.com/MadEthan6/Harvester"
 	},
 	"license": "CC0-1.0",
 	"icon": "assets/speedmine/icon.png",
