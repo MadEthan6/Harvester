@@ -41,6 +41,7 @@ replay_*.log
 
 # release binaries
 *.jar
+!gradle/wrapper/gradle-wrapper.jar
 
 # assistant configs
 .agents/
