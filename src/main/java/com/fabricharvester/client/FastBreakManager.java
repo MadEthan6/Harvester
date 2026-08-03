@@ -1,10 +1,9 @@
 package com.fabricharvester.client;
 
 import com.fabricharvester.mixin.ClientPlayerInteractionManagerAccessor;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 
 public class FastBreakManager {
-
     public static boolean isEnabled() {
         return ModKeyBindings.isFastBreakEnabled();
     }
@@ -17,18 +16,28 @@ public class FastBreakManager {
         ModKeyBindings.setFastBreakEnabled(enabled);
     }
 
-    public static void tick(MinecraftClient client) {
-        if (client == null || client.player == null || client.world == null || client.interactionManager == null) {
+    public static void tick(Minecraft client) {
+        tick(client, 0);
+    }
+
+    public static void tick(Minecraft client, int targetCooldown) {
+        if (client == null || client.player == null || client.level == null || client.gameMode == null) {
             return;
         }
-        boolean active = isActive();
-        tick(active, (ClientPlayerInteractionManagerAccessor) client.interactionManager);
+        tick(isActive(), targetCooldown, (ClientPlayerInteractionManagerAccessor) client.gameMode);
     }
 
     public static void tick(boolean active, ClientPlayerInteractionManagerAccessor accessor) {
+        tick(active, 0, accessor);
+    }
+
+    public static void tick(boolean active, int targetCooldown, ClientPlayerInteractionManagerAccessor accessor) {
         if (!active || accessor == null) {
             return;
         }
-        accessor.setBlockBreakingCooldown(0);
+        int safeTarget = Math.max(0, targetCooldown);
+        if (accessor.getBlockBreakingCooldown() > safeTarget) {
+            accessor.setBlockBreakingCooldown(safeTarget);
+        }
     }
 }

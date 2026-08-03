@@ -1,228 +1,385 @@
 package com.fabricharvester.client;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.CropBlock;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.network.ClientPlayerInteractionManager;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
-import net.minecraft.screen.slot.SlotActionType;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 
-/** Client-thread crop harvesting and replanting logic. */
+import java.util.ArrayList;
+import java.util.List;
+
+/** Runs at most one acknowledged harvest/replant operation at a time. */
 public final class HarvesterManager {
     private static final int HORIZONTAL_RADIUS = 1;
     private static final int VERTICAL_RADIUS = 1;
-    private static final int HOTBAR_SIZE = 9;
-    private static final int MAIN_INVENTORY_SIZE = 36;
-    private static final int PLAYER_HANDLER_HOTBAR_START = 36;
-    private static final int ACTION_INTERVAL_TICKS = 2;
+    private static final int WARNING_COOLDOWN_TICKS = 40;
 
-    private static int actionCooldown;
+    private final HarvestScheduler scheduler = new HarvestScheduler();
+    private PendingHarvest pending;
+    private int warningCooldown;
 
-    private HarvesterManager() {
+    public void tick(Minecraft client, boolean harvestHeld, AutomationProfile profile) {
+        if (warningCooldown > 0) {
+            warningCooldown--;
+        }
+        scheduler.tick();
+        if (!isReady(client)) {
+            return;
+        }
+
+        if (pending != null) {
+            tickPending(client);
+            return;
+        }
+        if (!scheduler.canStart(harvestHeld, false)) {
+            return;
+        }
+
+        CropTarget target = findNearestMatureCrop(client);
+        if (target == null) {
+            return;
+        }
+        if (!hasPlantingItem(client.player, target.definition().plantingItem())) {
+            warn(client, "warning.fabric_harvester.missing_seeds");
+            scheduler.onStarted(profile);
+            return;
+        }
+        if (!client.gameMode.destroyBlock(target.position())) {
+            warn(client, "warning.fabric_harvester.break_rejected");
+            scheduler.onStarted(profile);
+            return;
+        }
+
+        client.player.swing(InteractionHand.MAIN_HAND);
+        pending = new PendingHarvest(
+                target.position(),
+                target.definition(),
+                new HarvestOperation(profile.retryBackoffTicks())
+        );
+        scheduler.onStarted(profile);
     }
 
-    public static void tick(MinecraftClient client) {
-        if (client == null) {
+    public void cancel() {
+        if (pending != null) {
+            pending.operation().cancel();
+            pending = null;
+        }
+        scheduler.reset();
+        warningCooldown = 0;
+    }
+
+    public boolean hasPendingOperation() {
+        return pending != null;
+    }
+
+    public HarvestOperation.State operationState() {
+        return pending == null ? null : pending.operation().state();
+    }
+
+    private void tickPending(Minecraft client) {
+        BlockPos cropPos = pending.position();
+        BlockPos farmlandPos = cropPos.below();
+        if (!isWithinReach(client, cropPos)) {
+            failPending(client, "warning.fabric_harvester.out_of_reach");
             return;
         }
-        if (!client.isOnThread()) {
-            client.execute(() -> tick(client));
-            return;
-        }
-        if (!ModKeyBindings.isHarvestActive()) {
-            actionCooldown = 0;
-            return;
-        }
-        if (client.player == null || client.world == null || client.interactionManager == null
-                || client.currentScreen != null) {
-            return;
-        }
-        if (actionCooldown > 0) {
-            actionCooldown--;
+        if (!client.level.getBlockState(farmlandPos).is(Blocks.FARMLAND)) {
+            failPending(client, "warning.fabric_harvester.farmland_missing");
             return;
         }
 
-        BlockPos cropPos = findNearestMatureCrop(client);
-        if (cropPos == null) {
-            return;
+        BlockState currentState = client.level.getBlockState(cropPos);
+        boolean cropRemoved = !currentState.is(pending.definition().cropBlock());
+        boolean cropReplanted = pending.definition().isReplanted(currentState);
+        HarvestOperation.Step step = pending.operation().tick(cropRemoved, cropReplanted);
+        handleStep(client, step);
+    }
+
+    private void handleStep(Minecraft client, HarvestOperation.Step step) {
+        switch (step) {
+            case ATTEMPT_REPLANT -> {
+                ReplantAttempt attempt = attemptReplant(client, pending);
+                if (attempt == ReplantAttempt.INVENTORY_CHANGED) {
+                    failPending(client, "warning.fabric_harvester.inventory_changed");
+                    return;
+                }
+                HarvestOperation.Step result = pending.operation().onReplantAttempt(
+                        attempt == ReplantAttempt.ACCEPTED
+                );
+                if (result != HarvestOperation.Step.NONE) {
+                    handleStep(client, result);
+                }
+            }
+            case COMPLETE -> pending = null;
+            case BREAK_TIMEOUT -> failPending(client, "warning.fabric_harvester.break_timeout");
+            case REPLANT_TIMEOUT -> failPending(client, "warning.fabric_harvester.replant_timeout");
+            case NONE -> {
+            }
+        }
+    }
+
+    private ReplantAttempt attemptReplant(Minecraft client, PendingHarvest harvest) {
+        if (!client.level.getBlockState(harvest.position()).isAir()) {
+            return ReplantAttempt.REJECTED;
         }
 
-        BlockState cropState = client.world.getBlockState(cropPos);
-        Item plantingItem = getPlantingItem(cropState.getBlock());
-        if (plantingItem == null || !isWithinReach(client, cropPos)) {
-            return;
-        }
-
-        HeldItemSelection selection = HeldItemSelection.select(client, plantingItem);
+        HeldItemSelection selection = HeldItemSelection.select(client, harvest.definition().plantingItem());
         if (selection == null) {
-            return;
+            warn(client, "warning.fabric_harvester.missing_seeds");
+            return ReplantAttempt.REJECTED;
         }
 
+        boolean accepted;
+        boolean restored;
         try {
-            harvestAndReplant(client, cropPos, selection.hand());
+            BlockPos farmlandPos = harvest.position().below();
+            BlockHitResult hitResult = new BlockHitResult(
+                    Vec3.atBottomCenterOf(harvest.position()),
+                    Direction.UP,
+                    farmlandPos,
+                    false
+            );
+            InteractionResult result = client.gameMode.useItemOn(
+                    client.player,
+                    selection.hand(),
+                    hitResult
+            );
+            if (result.consumesAction()) {
+                client.player.swing(selection.hand());
+            }
+            accepted = result.consumesAction();
         } finally {
-            selection.restore(client);
+            restored = selection.restore(client);
         }
+        if (!restored) {
+            return ReplantAttempt.INVENTORY_CHANGED;
+        }
+        return accepted ? ReplantAttempt.ACCEPTED : ReplantAttempt.REJECTED;
     }
 
-    private static BlockPos findNearestMatureCrop(MinecraftClient client) {
-        BlockPos origin = client.player.getBlockPos();
-        BlockPos nearest = null;
-        double nearestDistance = Double.MAX_VALUE;
+    private CropTarget findNearestMatureCrop(Minecraft client) {
+        BlockPos origin = client.player.blockPosition();
+        List<CropCandidateSelector.Candidate<CropTarget>> candidates = new ArrayList<>();
 
         for (int y = -VERTICAL_RADIUS; y <= VERTICAL_RADIUS; y++) {
             for (int x = -HORIZONTAL_RADIUS; x <= HORIZONTAL_RADIUS; x++) {
                 for (int z = -HORIZONTAL_RADIUS; z <= HORIZONTAL_RADIUS; z++) {
-                    BlockPos candidate = origin.add(x, y, z);
-                    BlockState state = client.world.getBlockState(candidate);
-                    if (!isSupportedMatureCrop(state) || !isWithinReach(client, candidate)) {
-                        continue;
-                    }
-
-                    double distance = client.player.getEyePos().squaredDistanceTo(Vec3d.ofCenter(candidate));
-                    if (distance < nearestDistance) {
-                        nearestDistance = distance;
-                        nearest = candidate.toImmutable();
-                    }
+                    BlockPos candidate = origin.offset(x, y, z);
+                    BlockState state = client.level.getBlockState(candidate);
+                    CropDefinition definition = CropRegistry.findMature(state).orElse(null);
+                    double distance = client.player.getEyePosition().distanceToSqr(Vec3.atCenterOf(candidate));
+                    candidates.add(new CropCandidateSelector.Candidate<>(
+                            definition == null ? null : new CropTarget(candidate.immutable(), definition),
+                            definition != null,
+                            isWithinReach(client, candidate),
+                            distance
+                    ));
                 }
             }
         }
-
-        return nearest;
+        return CropCandidateSelector.nearestUsable(candidates).orElse(null);
     }
 
-    private static boolean isSupportedMatureCrop(BlockState state) {
-        Block block = state.getBlock();
-        if (getPlantingItem(block) == null || !(block instanceof CropBlock cropBlock)) {
-            return false;
-        }
-        return cropBlock.isMature(state);
+    private static boolean hasPlantingItem(LocalPlayer player, Item item) {
+        Inventory inventory = player.getInventory();
+        return InventorySelectionPlan.choose(
+                player.getMainHandItem().is(item),
+                player.getOffhandItem().is(item),
+                inventory.getContainerSize(),
+                slot -> inventory.getItem(slot).is(item)
+        ).found();
     }
 
-    private static Item getPlantingItem(Block cropBlock) {
-        if (cropBlock == Blocks.WHEAT) {
-            return Items.WHEAT_SEEDS;
-        }
-        if (cropBlock == Blocks.CARROTS) {
-            return Items.CARROT;
-        }
-        if (cropBlock == Blocks.POTATOES) {
-            return Items.POTATO;
-        }
-        if (cropBlock == Blocks.BEETROOTS) {
-            return Items.BEETROOT_SEEDS;
-        }
-        return null;
+    private static boolean isWithinReach(Minecraft client, BlockPos pos) {
+        double reach = client.player.blockInteractionRange();
+        return client.player.getEyePosition().distanceToSqr(Vec3.atCenterOf(pos)) <= reach * reach;
     }
 
-    private static boolean isWithinReach(MinecraftClient client, BlockPos pos) {
-        double reach = client.player.getBlockInteractionRange();
-        return client.player.getEyePos().squaredDistanceTo(Vec3d.ofCenter(pos)) <= reach * reach;
+    private static boolean isReady(Minecraft client) {
+        return client != null
+                && client.isSameThread()
+                && client.player != null
+                && client.player.isAlive()
+                && client.level != null
+                && client.gameMode != null;
     }
 
-    private static void harvestAndReplant(MinecraftClient client, BlockPos cropPos, Hand plantingHand) {
-        ClientPlayerEntity player = client.player;
-        ClientPlayerInteractionManager interactionManager = client.interactionManager;
+    private void failPending(Minecraft client, String translationKey) {
+        warn(client, translationKey);
+        if (pending != null) {
+            pending.operation().cancel();
+        }
+        pending = null;
+    }
 
-        if (!interactionManager.breakBlock(cropPos)) {
+    private void warn(Minecraft client, String translationKey) {
+        if (warningCooldown > 0 || client.player == null) {
             return;
         }
-
-        player.swingHand(Hand.MAIN_HAND);
-
-        BlockPos farmlandPos = cropPos.down();
-        if (!client.world.getBlockState(farmlandPos).isOf(Blocks.FARMLAND)) {
-            return;
-        }
-
-        BlockHitResult hitResult = new BlockHitResult(
-                Vec3d.ofBottomCenter(cropPos),
-                Direction.UP,
-                farmlandPos,
-                false
-        );
-        ActionResult result = interactionManager.interactBlock(player, plantingHand, hitResult);
-        if (result.isAccepted()) {
-            player.swingHand(plantingHand);
-        }
-        actionCooldown = ACTION_INTERVAL_TICKS;
+        client.player.sendOverlayMessage(Component.translatable(translationKey).withStyle(ChatFormatting.RED));
+        warningCooldown = WARNING_COOLDOWN_TICKS;
     }
 
-    private record HeldItemSelection(Hand hand, int originalSelectedSlot, int swappedInventorySlot) {
-        private static final int NO_SLOT = -1;
+    private record CropTarget(BlockPos position, CropDefinition definition) {
+    }
 
-        static HeldItemSelection select(MinecraftClient client, Item item) {
-            ClientPlayerEntity player = client.player;
-            PlayerInventory inventory = player.getInventory();
+    private enum ReplantAttempt {
+        ACCEPTED,
+        REJECTED,
+        INVENTORY_CHANGED
+    }
 
-            if (player.getMainHandStack().isOf(item)) {
-                return new HeldItemSelection(Hand.MAIN_HAND, NO_SLOT, NO_SLOT);
+    private record PendingHarvest(
+            BlockPos position,
+            CropDefinition definition,
+            HarvestOperation operation
+    ) {
+    }
+
+    private record HeldItemSelection(
+            InteractionHand hand,
+            InventorySelectionPlan.Source source,
+            int originalSelectedSlot,
+            int selectedOrSwappedSlot,
+            Item plantingItem,
+            ItemStack plantingSnapshot,
+            ItemStack displacedSnapshot
+    ) {
+        static HeldItemSelection select(Minecraft client, Item item) {
+            LocalPlayer player = client.player;
+            Inventory inventory = player.getInventory();
+            InventorySelectionPlan plan = InventorySelectionPlan.choose(
+                    player.getMainHandItem().is(item),
+                    player.getOffhandItem().is(item),
+                    inventory.getContainerSize(),
+                    slot -> inventory.getItem(slot).is(item)
+            );
+
+            return switch (plan.source()) {
+                case MAIN_HAND -> simple(InteractionHand.MAIN_HAND, plan.source(), item);
+                case OFF_HAND -> simple(InteractionHand.OFF_HAND, plan.source(), item);
+                case HOTBAR -> selectHotbar(client, plan.slot(), item);
+                case MAIN_INVENTORY -> swapFromInventory(client, plan.slot(), item);
+                case NONE -> null;
+            };
+        }
+
+        private static HeldItemSelection simple(
+                InteractionHand hand,
+                InventorySelectionPlan.Source source,
+                Item item
+        ) {
+            return new HeldItemSelection(
+                    hand,
+                    source,
+                    -1,
+                    -1,
+                    item,
+                    ItemStack.EMPTY,
+                    ItemStack.EMPTY
+            );
+        }
+
+        private static HeldItemSelection selectHotbar(Minecraft client, int slot, Item item) {
+            LocalPlayer player = client.player;
+            int originalSlot = player.getInventory().getSelectedSlot();
+            ItemStack plantingSnapshot = player.getInventory().getItem(slot).copy();
+            player.getInventory().setSelectedSlot(slot);
+            player.connection.send(new ServerboundSetCarriedItemPacket(slot));
+            return new HeldItemSelection(
+                    InteractionHand.MAIN_HAND,
+                    InventorySelectionPlan.Source.HOTBAR,
+                    originalSlot,
+                    slot,
+                    item,
+                    plantingSnapshot,
+                    ItemStack.EMPTY
+            );
+        }
+
+        private static HeldItemSelection swapFromInventory(Minecraft client, int slot, Item item) {
+            LocalPlayer player = client.player;
+            Inventory inventory = player.getInventory();
+            int selectedSlot = inventory.getSelectedSlot();
+            ItemStack plantingSnapshot = inventory.getItem(slot).copy();
+            ItemStack displacedSnapshot = inventory.getItem(selectedSlot).copy();
+            client.gameMode.handleContainerInput(
+                    player.containerMenu.containerId,
+                    slot,
+                    selectedSlot,
+                    ContainerInput.SWAP,
+                    player
+            );
+            return new HeldItemSelection(
+                    InteractionHand.MAIN_HAND,
+                    InventorySelectionPlan.Source.MAIN_INVENTORY,
+                    selectedSlot,
+                    slot,
+                    item,
+                    plantingSnapshot,
+                    displacedSnapshot
+            );
+        }
+
+        boolean restore(Minecraft client) {
+            if (client.player == null || client.gameMode == null) {
+                return false;
             }
-            if (player.getOffHandStack().isOf(item)) {
-                return new HeldItemSelection(Hand.OFF_HAND, NO_SLOT, NO_SLOT);
-            }
 
-            int originalSelectedSlot = inventory.selectedSlot;
-            for (int slot = 0; slot < HOTBAR_SIZE; slot++) {
-                if (inventory.getStack(slot).isOf(item)) {
-                    inventory.selectedSlot = slot;
-                    player.networkHandler.sendPacket(new UpdateSelectedSlotC2SPacket(slot));
-                    return new HeldItemSelection(Hand.MAIN_HAND, originalSelectedSlot, NO_SLOT);
-                }
-            }
-
-            int inventoryEnd = Math.min(MAIN_INVENTORY_SIZE, inventory.size());
-            for (int slot = HOTBAR_SIZE; slot < inventoryEnd; slot++) {
-                ItemStack stack = inventory.getStack(slot);
-                if (!stack.isOf(item)) {
-                    continue;
-                }
-
-                client.interactionManager.clickSlot(
-                        player.playerScreenHandler.syncId,
-                        slot,
+            LocalPlayer player = client.player;
+            Inventory inventory = player.getInventory();
+            if (source == InventorySelectionPlan.Source.MAIN_INVENTORY) {
+                if (!InventoryRestorePolicy.canRestoreInventorySwap(
+                        inventory.getSelectedSlot(),
                         originalSelectedSlot,
-                        SlotActionType.SWAP,
+                        ItemStack.matches(inventory.getItem(selectedOrSwappedSlot), displacedSnapshot),
+                        isExpectedPlantingRemainder(inventory.getItem(originalSelectedSlot))
+                )) {
+                    return false;
+                }
+                client.gameMode.handleContainerInput(
+                        player.containerMenu.containerId,
+                        selectedOrSwappedSlot,
+                        originalSelectedSlot,
+                        ContainerInput.SWAP,
                         player
                 );
-                return new HeldItemSelection(Hand.MAIN_HAND, NO_SLOT, slot);
+            } else if (source == InventorySelectionPlan.Source.HOTBAR) {
+                if (!InventoryRestorePolicy.canRestoreHotbar(
+                        inventory.getSelectedSlot(),
+                        selectedOrSwappedSlot,
+                        isExpectedPlantingRemainder(inventory.getItem(selectedOrSwappedSlot))
+                )) {
+                    return false;
+                }
+                inventory.setSelectedSlot(originalSelectedSlot);
+                player.connection.send(new ServerboundSetCarriedItemPacket(originalSelectedSlot));
             }
-
-            return null;
+            return true;
         }
 
-        void restore(MinecraftClient client) {
-            ClientPlayerEntity player = client.player;
-            if (player == null || client.interactionManager == null) {
-                return;
-            }
-
-            if (swappedInventorySlot != NO_SLOT) {
-                client.interactionManager.clickSlot(
-                        player.playerScreenHandler.syncId,
-                        swappedInventorySlot,
-                        player.getInventory().selectedSlot,
-                        SlotActionType.SWAP,
-                        player
-                );
-            }
-            if (originalSelectedSlot != NO_SLOT) {
-                player.getInventory().selectedSlot = originalSelectedSlot;
-                player.networkHandler.sendPacket(new UpdateSelectedSlotC2SPacket(originalSelectedSlot));
-            }
+        private boolean isExpectedPlantingRemainder(ItemStack current) {
+            boolean sameItemAndComponents = !current.isEmpty()
+                    && current.is(plantingItem)
+                    && ItemStack.isSameItemSameComponents(current, plantingSnapshot);
+            return InventoryRestorePolicy.plantingRemainderIsExpected(
+                    plantingSnapshot.getCount(),
+                    current.getCount(),
+                    sameItemAndComponents
+            );
         }
     }
 }

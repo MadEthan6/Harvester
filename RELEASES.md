@@ -1,14 +1,10 @@
-# Fabric Harvester Release Chart
+# Fabric Harvester Releases
 
-| Target MC Version | Mod Version | Built Jar Artifact | Status | Built Timestamp |
-|---|---|---|---|---|
-| 1.21.x | 1.0.0 | build/libs/fabric_harvester-1.0.0.jar | Release Ready | 2026-08-03T18:37:46.548348500Z |
+| Minecraft | Mod | Artifact |
+|---|---|---|
+| 26.2 | 1.6.0 | `build/libs/fabric_harvester-1.6.0.jar` |
 
-## Release Details
+Run `./gradlew clean release` (or `gradlew.bat clean release` on Windows)
+to build the mapping-free Minecraft 26.2 artifact and write its SHA-256 checksum
+to `build/checksums/fabric_harvester-1.6.0.jar.sha256`.
 
-### Minecraft 1.21.x
-- **Mod Name**: fabric_harvester
-- **Mod Version**: `1.0.0`
-- **Target Minecraft Version**: `1.21.x` (MC 1.21.4)
-- **Artifact Path**: `build/libs/fabric_harvester-1.0.0.jar`
-- **Build Task**: `generateReleases`

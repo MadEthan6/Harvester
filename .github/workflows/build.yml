@@ -1,30 +1,50 @@
-# Automatically build the project and run any configured tests for every push
-# and submitted pull request. This can help catch issues that only occur on
-# certain platforms or Java versions, and provides a first line of defence
-# against bad commits.
-
 name: build
-on: [pull_request, push]
+
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025]
+    runs-on: ${{ matrix.os }}
+
     steps:
-      - name: checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v6
-      - name: validate gradle wrapper
+
+      - name: Validate Gradle wrapper
         uses: gradle/actions/wrapper-validation@v6
-      - name: setup jdk
+
+      - name: Set up Java 25
         uses: actions/setup-java@v5
         with:
-          java-version: '25'
-          distribution: 'microsoft'
-      - name: make gradle wrapper executable
+          java-version: "25"
+          distribution: microsoft
+          cache: gradle
+
+      - name: Make Gradle wrapper executable
+        if: runner.os != 'Windows'
         run: chmod +x ./gradlew
-      - name: build
-        run: ./gradlew build
-      - name: capture build artifacts
-        uses: actions/upload-artifact@v7
+
+      - name: Build release on Linux
+        if: runner.os != 'Windows'
+        run: ./gradlew clean release
+
+      - name: Build release on Windows
+        if: runner.os == 'Windows'
+        run: .\gradlew.bat clean release
+
+      - name: Upload remapped JAR and checksum
+        uses: actions/upload-artifact@v6
         with:
-          name: Artifacts
-          path: build/libs/
+          name: fabric-harvester-1.6.0-${{ runner.os }}
+          path: |
+            build/libs/fabric_harvester-1.6.0.jar
+            build/checksums/fabric_harvester-1.6.0.jar.sha256
+          if-no-files-found: error
+

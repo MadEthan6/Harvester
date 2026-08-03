@@ -1,15 +1,18 @@
 # Security Policy
 
-## Supported Versions
+## Supported versions
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
+| Version | Minecraft | Supported |
+|---|---|---|
+| 1.6.x | 26.2 | Yes |
+| Earlier | Earlier releases | No |
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 1.0.0   | :white_check_mark: |
-| < 1.0.0 | :x:                |
+## Reporting a vulnerability
 
-## Reporting a Vulnerability
+Open a private security advisory from the repository's Security tab when
+possible. Otherwise, open an issue at
+https://github.com/MadEthan6/Harvester/issues without including exploit details
+and ask the maintainer for a private contact channel.
 
-Please report any security vulnerabilities by opening an issue on GitHub, or by contacting the maintainer directly if a private channel is available. Provide a detailed description of the vulnerability and, if possible, steps to reproduce it.
+Please include the affected version, environment, impact, and minimal
+reproduction steps.

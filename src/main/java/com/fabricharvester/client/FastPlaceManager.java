@@ -1,10 +1,9 @@
 package com.fabricharvester.client;
 
 import com.fabricharvester.mixin.MinecraftClientAccessor;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 
 public class FastPlaceManager {
-
     public static boolean isEnabled() {
         return ModKeyBindings.isFastPlaceEnabled();
     }
@@ -17,18 +16,28 @@ public class FastPlaceManager {
         ModKeyBindings.setFastPlaceEnabled(enabled);
     }
 
-    public static void tick(MinecraftClient client) {
-        if (client == null || client.player == null || client.world == null) {
+    public static void tick(Minecraft client) {
+        tick(client, 0);
+    }
+
+    public static void tick(Minecraft client, int targetCooldown) {
+        if (client == null || client.player == null || client.level == null) {
             return;
         }
-        boolean active = isActive();
-        tick(active, (MinecraftClientAccessor) client);
+        tick(isActive(), targetCooldown, (MinecraftClientAccessor) client);
     }
 
     public static void tick(boolean active, MinecraftClientAccessor accessor) {
+        tick(active, 0, accessor);
+    }
+
+    public static void tick(boolean active, int targetCooldown, MinecraftClientAccessor accessor) {
         if (!active || accessor == null) {
             return;
         }
-        accessor.setItemUseCooldown(0);
+        int safeTarget = Math.max(0, targetCooldown);
+        if (accessor.getItemUseCooldown() > safeTarget) {
+            accessor.setItemUseCooldown(safeTarget);
+        }
     }
 }

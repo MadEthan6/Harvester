@@ -3,18 +3,18 @@
   "id": "fabric_harvester",
   "version": "${version}",
   "name": "Fabric Harvester",
-  "description": "A Fabric mod providing fast block breaking, fast placing, and crop harvesting/replanting tools with rebindable controls.",
+  "description": "Client-side crop harvesting and placement utilities with safety profiles, confirmation, retries, and emergency shutdown.",
   "authors": [
-    "Fabric Harvester Team"
+    "MadEthan6"
   ],
-  "contact": {},
-  "license": "MIT",
-  "icon": "assets/fabric_harvester/icon.png",
-  "environment": "*",
+  "contact": {
+    "sources": "https://github.com/MadEthan6/Harvester",
+    "issues": "https://github.com/MadEthan6/Harvester/issues"
+  },
+  "license": "CC0-1.0",
+  "icon": "assets/speedmine/icon.png",
+  "environment": "client",
   "entrypoints": {
-    "main": [
-      "com.fabricharvester.FabricHarvesterMod"
-    ],
     "client": [
       "com.fabricharvester.client.FabricHarvesterClient"
     ]
@@ -23,9 +23,9 @@
     "fabric_harvester.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.16.0",
-    "minecraft": "~1.21",
-    "java": ">=21",
-    "fabric-api": "*"
+    "fabricloader": ">=0.19.3",
+    "minecraft": "=26.2",
+    "java": ">=25",
+    "fabric-api": ">=0.156.0"
   }
 }

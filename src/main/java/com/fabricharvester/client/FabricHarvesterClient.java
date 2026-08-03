@@ -10,14 +10,13 @@ public class FabricHarvesterClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        LOGGER.info("Initializing Fabric Harvester Client Keybindings...");
+        LOGGER.info("Initializing Fabric Harvester client...");
         ModKeyBindings.register();
-        ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            ModKeyBindings.onClientTick(client);
-            FastBreakManager.tick(client);
-            FastPlaceManager.tick(client);
-            HarvesterManager.tick(client);
-        });
-        LOGGER.info("Fabric Harvester Client Keybindings initialized successfully!");
+        AutomationController controller = AutomationController.getInstance();
+        controller.registerLifecycleEvents();
+        ClientTickEvents.END_CLIENT_TICK.register(controller::tick);
+        AutomationHud.register();
+        LOGGER.info("Fabric Harvester client initialized successfully!");
     }
 }
+

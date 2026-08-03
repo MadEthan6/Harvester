@@ -1,5 +1,7 @@
+import java.security.MessageDigest
+
 plugins {
-	id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
 	id 'maven-publish'
 }
 
@@ -11,18 +13,13 @@ base {
 }
 
 repositories {
-	maven {
-		name = 'sponge'
-		url = 'https://repo.spongepowered.org/repository/maven-public/'
-	}
 	mavenCentral()
 }
 
 dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
 	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.0'
 	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.0'
@@ -31,76 +28,78 @@ dependencies {
 
 test {
 	useJUnitPlatform()
+	systemProperty "fabricHarvester.modVersion", project.version.toString()
 }
 
 processResources {
-	def version = project.version
-	inputs.property "version", version
+	inputs.property "version", project.version
 
 	filesMatching("fabric.mod.json") {
-		expand "version": version
+		expand "version": project.version
 	}
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.release = 21
+	it.options.release = 25
 }
 
 java {
 	withSourcesJar()
-	sourceCompatibility = JavaVersion.VERSION_21
-	targetCompatibility = JavaVersion.VERSION_21
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
 }
 
 jar {
 	def projectName = project.name
 	inputs.property "projectName", projectName
-}
-
-tasks.register('generateReleases') {
-	group = 'build'
-	description = 'Compiles mod JAR for MC 1.21.x and creates/updates RELEASES.md release chart.'
-
-	def jarTask = tasks.findByName('remapJar') ?: tasks.jar
-	dependsOn jarTask
-
-	def releasesFile = file("RELEASES.md")
-
-	inputs.file(jarTask.archiveFile)
-	outputs.file(releasesFile)
-
-	doLast {
-		def targetJarTask = tasks.findByName('remapJar') ?: tasks.jar
-		def jarFile = targetJarTask.archiveFile.get().asFile
-		def relativeJarPath = project.projectDir.toPath().relativize(jarFile.toPath()).toString().replace('\\', '/')
-		def targetMcVersion = project.findProperty("minecraft_version") ?: "1.21.4"
-		def modVersion = project.version.toString()
-		def modName = project.findProperty("archives_base_name") ?: project.name
-		def timestamp = java.time.Instant.now().toString()
-
-		def content = """# Fabric Harvester Release Chart
-
-| Target MC Version | Mod Version | Built Jar Artifact | Status | Built Timestamp |
-|---|---|---|---|---|
-| 1.21.x | \${modVersion} | \${relativeJarPath} | Release Ready | \${timestamp} |
-
-## Release Details
-
-### Minecraft 1.21.x
-- **Mod Name**: \${modName}
-- **Mod Version**: `\${modVersion}`
-- **Target Minecraft Version**: `1.21.x` (MC \${targetMcVersion})
-- **Artifact Path**: `\${relativeJarPath}`
-- **Build Task**: `generateReleases`
-"""
-
-		releasesFile.text = content
-		logger.lifecycle("[generateReleases] Successfully updated RELEASES.md with artifact path: \${relativeJarPath}")
+	from("LICENSE") {
+		rename { "LICENSE_${projectName}" }
 	}
 }
 
-tasks.register('release') {
-	group = 'build'
-	description = 'Alias for generateReleases.'
-	dependsOn tasks.generateReleases
+tasks.withType(AbstractArchiveTask).configureEach {
+	preserveFileTimestamps = false
+	reproducibleFileOrder = true
+}
+
+// Minecraft 26.2 is distributed with official names, so Loom's mapping-free
+// plugin produces the distributable artifact directly from the jar task.
+def releaseJar = tasks.named("jar").flatMap { it.archiveFile }
+def releaseChecksum = layout.buildDirectory.file(
+	"checksums/${project.archives_base_name}-${project.version}.jar.sha256"
+)
+
+tasks.register("checksumRelease") {
+	group = "build"
+	description = "Writes a SHA-256 checksum for the remapped release JAR."
+	dependsOn tasks.named("jar")
+	inputs.file(releaseJar)
+	outputs.file(releaseChecksum)
+
+	doLast {
+		def jarFile = releaseJar.get().asFile
+		def digest = MessageDigest.getInstance("SHA-256")
+		jarFile.withInputStream { input ->
+			byte[] buffer = new byte[8192]
+			int read
+			while ((read = input.read(buffer)) != -1) {
+				digest.update(buffer, 0, read)
+			}
+		}
+
+		def checksumFile = releaseChecksum.get().asFile
+		checksumFile.parentFile.mkdirs()
+		checksumFile.text = "${digest.digest().encodeHex()}  ${jarFile.name}${System.lineSeparator()}"
+	}
+}
+
+tasks.named("checksumRelease") {
+	mustRunAfter tasks.named("test")
+}
+
+tasks.register("release") {
+	group = "build"
+	description = "Builds, tests, remaps, and checksums the reproducible release artifact."
+	dependsOn tasks.named("build")
+	dependsOn tasks.named("checksumRelease")
 }

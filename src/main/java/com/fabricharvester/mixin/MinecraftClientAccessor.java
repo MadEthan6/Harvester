@@ -2,17 +2,16 @@ package com.fabricharvester.mixin;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Environment(EnvType.CLIENT)
-@Mixin(MinecraftClient.class)
+@Mixin(Minecraft.class)
 public interface MinecraftClientAccessor {
-
-    @Accessor("itemUseCooldown")
+    @Accessor("rightClickDelay")
     int getItemUseCooldown();
 
-    @Accessor("itemUseCooldown")
+    @Accessor("rightClickDelay")
     void setItemUseCooldown(int cooldown);
 }

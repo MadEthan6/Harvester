@@ -1,82 +1,80 @@
 package com.fabricharvester.client;
 
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
-import net.minecraft.text.Text;
+import com.mojang.blaze3d.platform.InputConstants;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class ModKeyBindings {
-    public static final String KEY_CATEGORY = "key.categories.fabric_harvester";
-
+public final class ModKeyBindings {
     public static final String KEY_FAST_BREAK = "key.fabric_harvester.fast_break";
     public static final String KEY_FAST_PLACE = "key.fabric_harvester.fast_place";
     public static final String KEY_HARVEST = "key.fabric_harvester.harvest";
+    public static final String KEY_PROFILE = "key.fabric_harvester.profile";
+    public static final String KEY_EMERGENCY_STOP = "key.fabric_harvester.emergency_stop";
 
-    public static KeyBinding fastBreakKey;
-    public static KeyBinding fastPlaceKey;
-    public static KeyBinding harvestKey;
+    private static final KeyMapping.Category KEY_CATEGORY = KeyMapping.Category.register(
+            Identifier.fromNamespaceAndPath("fabric_harvester", "general")
+    );
+
+    public static KeyMapping fastBreakKey;
+    public static KeyMapping fastPlaceKey;
+    public static KeyMapping harvestKey;
+    public static KeyMapping profileKey;
+    public static KeyMapping emergencyStopKey;
 
     private static final AtomicBoolean fastBreakEnabled = new AtomicBoolean(false);
     private static final AtomicBoolean fastPlaceEnabled = new AtomicBoolean(false);
     private static final AtomicBoolean harvestActive = new AtomicBoolean(false);
+    private static boolean harvestSuppressedUntilRelease;
 
-    public static void register() {
-        fastBreakKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                KEY_FAST_BREAK,
-                InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_B,
-                KEY_CATEGORY
-        ));
-
-        fastPlaceKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                KEY_FAST_PLACE,
-                InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_V,
-                KEY_CATEGORY
-        ));
-
-        harvestKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                KEY_HARVEST,
-                InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_H,
-                KEY_CATEGORY
-        ));
+    private ModKeyBindings() {
     }
 
-    public static void onClientTick(MinecraftClient client) {
-        if (fastBreakKey != null) {
-            while (fastBreakKey.wasPressed()) {
-                boolean newState = !fastBreakEnabled.get();
-                fastBreakEnabled.set(newState);
-                if (client != null && client.player != null) {
-                    client.player.sendMessage(
-                            Text.literal("Fast Break: " + (newState ? "§aENABLED" : "§cDISABLED")),
-                            true
-                    );
-                }
-            }
+    public static void register() {
+        fastBreakKey = register(KEY_FAST_BREAK, GLFW.GLFW_KEY_B);
+        fastPlaceKey = register(KEY_FAST_PLACE, GLFW.GLFW_KEY_V);
+        harvestKey = register(KEY_HARVEST, GLFW.GLFW_KEY_H);
+        profileKey = register(KEY_PROFILE, GLFW.GLFW_KEY_P);
+        emergencyStopKey = register(KEY_EMERGENCY_STOP, GLFW.GLFW_KEY_K);
+    }
+
+    public static void onClientTick(Minecraft client) {
+        onClientTick(client, AutomationController.getInstance());
+    }
+
+    public static void onClientTick(Minecraft client, AutomationController controller) {
+        if (consumeEmergencyStop()) {
+            controller.emergencyStop(client, true);
+            drainToggleKeys();
+            return;
         }
 
-        if (fastPlaceKey != null) {
-            while (fastPlaceKey.wasPressed()) {
-                boolean newState = !fastPlaceEnabled.get();
-                fastPlaceEnabled.set(newState);
-                if (client != null && client.player != null) {
-                    client.player.sendMessage(
-                            Text.literal("Fast Place: " + (newState ? "§aENABLED" : "§cDISABLED")),
-                            true
-                    );
-                }
+        if (profileKey != null) {
+            while (profileKey.consumeClick()) {
+                controller.cycleProfile(client);
             }
         }
-
-        if (harvestKey != null) {
-            harvestActive.set(harvestKey.isPressed());
-        }
+        consumeToggle(
+                fastBreakKey,
+                fastBreakEnabled,
+                client,
+                controller,
+                "message.fabric_harvester.fast_break"
+        );
+        consumeToggle(
+                fastPlaceKey,
+                fastPlaceEnabled,
+                client,
+                controller,
+                "message.fabric_harvester.fast_place"
+        );
+        updateHarvestState();
     }
 
     public static boolean isFastBreakEnabled() {
@@ -101,5 +99,96 @@ public class ModKeyBindings {
 
     public static void setHarvestActive(boolean active) {
         harvestActive.set(active);
+    }
+
+    public static void resetStates() {
+        fastBreakEnabled.set(false);
+        fastPlaceEnabled.set(false);
+        harvestActive.set(false);
+    }
+
+    public static void suppressHarvestUntilRelease() {
+        harvestSuppressedUntilRelease = true;
+        harvestActive.set(false);
+    }
+
+    static boolean isHarvestSuppressedUntilRelease() {
+        return harvestSuppressedUntilRelease;
+    }
+
+    private static KeyMapping register(String translationKey, int defaultKey) {
+        return KeyMappingHelper.registerKeyMapping(new KeyMapping(
+                translationKey,
+                InputConstants.Type.KEYSYM,
+                defaultKey,
+                KEY_CATEGORY
+        ));
+    }
+
+    private static boolean consumeEmergencyStop() {
+        boolean pressed = false;
+        if (emergencyStopKey != null) {
+            while (emergencyStopKey.consumeClick()) {
+                pressed = true;
+            }
+        }
+        return pressed;
+    }
+
+    private static void consumeToggle(
+            KeyMapping binding,
+            AtomicBoolean state,
+            Minecraft client,
+            AutomationController controller,
+            String translationKey
+    ) {
+        if (binding == null) {
+            return;
+        }
+        while (binding.consumeClick()) {
+            boolean enabled = !state.get();
+            state.set(enabled);
+            Component stateText = Component.translatable(enabled
+                    ? "state.fabric_harvester.enabled"
+                    : "state.fabric_harvester.disabled");
+            AutomationController.notify(
+                    client,
+                    translationKey,
+                    stateText,
+                    enabled ? ChatFormatting.GREEN : ChatFormatting.RED
+            );
+            if (enabled && controller.profile() == AutomationProfile.SAFE) {
+                AutomationController.warn(client, "warning.fabric_harvester.safe_limits");
+            }
+        }
+    }
+
+    private static void updateHarvestState() {
+        if (harvestKey == null) {
+            harvestActive.set(false);
+            return;
+        }
+        if (harvestSuppressedUntilRelease) {
+            harvestActive.set(false);
+            if (!harvestKey.isDown()) {
+                harvestSuppressedUntilRelease = false;
+            }
+            return;
+        }
+        harvestActive.set(harvestKey.isDown());
+    }
+
+    private static void drainToggleKeys() {
+        drain(fastBreakKey);
+        drain(fastPlaceKey);
+        drain(profileKey);
+    }
+
+    private static void drain(KeyMapping binding) {
+        if (binding != null) {
+            while (binding.consumeClick()) {
+                // Consume queued presses after the emergency stop.
+            }
+        }
     }
 }
