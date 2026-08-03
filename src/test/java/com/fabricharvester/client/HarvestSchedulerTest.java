@@ -7,12 +7,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class HarvestSchedulerTest {
     @Test
-    void safeProfileAllowsNoMoreThanOneStartPerEightTicks() {
+    void safeProfileAllowsNoMoreThanOneStartPerFourTicks() {
         HarvestScheduler scheduler = new HarvestScheduler();
         assertTrue(scheduler.canStart(true, false));
         scheduler.onStarted(AutomationProfile.SAFE);
 
-        for (int tick = 0; tick < 7; tick++) {
+        for (int tick = 0; tick < 3; tick++) {
             scheduler.tick();
             assertFalse(scheduler.canStart(true, false));
         }
@@ -21,11 +21,9 @@ class HarvestSchedulerTest {
     }
 
     @Test
-    void trustedProfileAllowsOneStartEveryTwoTicks() {
+    void trustedProfileAllowsOneStartEveryTick() {
         HarvestScheduler scheduler = new HarvestScheduler();
         scheduler.onStarted(AutomationProfile.TRUSTED);
-        scheduler.tick();
-        assertFalse(scheduler.canStart(true, false));
         scheduler.tick();
         assertTrue(scheduler.canStart(true, false));
     }

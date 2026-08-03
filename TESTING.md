@@ -13,6 +13,8 @@ Before publishing a build, verify this in-game matrix:
 | Singleplayer | Join a world | Trusted profile selected; every automation feature starts off |
 | Remote server | Join a server | Safe profile selected; every automation feature starts off |
 | Either | Press H once, then walk near each supported mature crop | Farming stays on; one crop is harvested at a time and replanted after confirmation |
+| Either | Hold right-click while looking directly at a mature crop | The targeted crop is chosen before any background scan candidate |
+| Either | Walk within four horizontal and two vertical blocks of farm targets | Reachable targets across the expanded scan area are processed |
 | Remote server | Reject or delay a crop break | The crop stays visible until the server responds and no replant seed is used |
 | Either | Press H again after a crop breaks | No new farm action starts; the pending replant still completes |
 | Either | Walk near empty farmland with supported seeds | One available seed/crop is planted and the selected slot is restored |

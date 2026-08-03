@@ -7,18 +7,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class AutomationProfileTest {
     @Test
     void safeProfileUsesConservativeLimits() {
-        assertEquals(8, AutomationProfile.SAFE.harvestIntervalTicks());
+        assertEquals(4, AutomationProfile.SAFE.harvestIntervalTicks());
         assertEquals(1, AutomationProfile.SAFE.blockBreakCooldown());
-        assertEquals(2, AutomationProfile.SAFE.itemUseCooldown());
-        assertEquals(4, AutomationProfile.SAFE.retryBackoffTicks());
+        assertEquals(1, AutomationProfile.SAFE.itemUseCooldown());
+        assertEquals(2, AutomationProfile.SAFE.retryBackoffTicks());
     }
 
     @Test
     void trustedProfileUsesFastLimits() {
-        assertEquals(2, AutomationProfile.TRUSTED.harvestIntervalTicks());
+        assertEquals(1, AutomationProfile.TRUSTED.harvestIntervalTicks());
         assertEquals(0, AutomationProfile.TRUSTED.blockBreakCooldown());
         assertEquals(0, AutomationProfile.TRUSTED.itemUseCooldown());
-        assertEquals(2, AutomationProfile.TRUSTED.retryBackoffTicks());
+        assertEquals(1, AutomationProfile.TRUSTED.retryBackoffTicks());
     }
 
     @Test

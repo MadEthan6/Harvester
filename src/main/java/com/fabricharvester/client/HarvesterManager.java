@@ -23,8 +23,8 @@ import java.util.function.Predicate;
 
 /** Runs at most one acknowledged farming operation at a time. */
 public final class HarvesterManager {
-    private static final int HORIZONTAL_RADIUS = 1;
-    private static final int VERTICAL_RADIUS = 1;
+    static final int HORIZONTAL_RADIUS = 4;
+    static final int VERTICAL_RADIUS = 2;
     private static final int WARNING_COOLDOWN_TICKS = 40;
     private static final Direction[] HORIZONTAL_DIRECTIONS = {
             Direction.NORTH,
@@ -110,7 +110,10 @@ public final class HarvesterManager {
     }
 
     private boolean tryStartHarvest(Minecraft client, AutomationProfile profile) {
-        CropTarget target = findNearestMatureCrop(client);
+        CropTarget target = findLookedAtMatureCrop(client);
+        if (target == null) {
+            target = findNearestMatureCrop(client);
+        }
         if (target == null) {
             return false;
         }
@@ -399,6 +402,21 @@ public final class HarvesterManager {
             CropDefinition definition = CropRegistry.findMature(state).orElse(null);
             return definition == null ? null : new CropTarget(pos.immutable(), definition);
         });
+    }
+
+    private CropTarget findLookedAtMatureCrop(Minecraft client) {
+        boolean targetingCrop = client.options.keyUse.isDown() || client.options.keyAttack.isDown();
+        if (!targetingCrop || !(client.hitResult instanceof BlockHitResult hitResult)) {
+            return null;
+        }
+
+        BlockPos position = hitResult.getBlockPos();
+        if (!isWithinReach(client, position)) {
+            return null;
+        }
+        BlockState state = client.level.getBlockState(position);
+        CropDefinition definition = CropRegistry.findMature(state).orElse(null);
+        return definition == null ? null : new CropTarget(position.immutable(), definition);
     }
 
     private CropTarget findNearestImmatureCrop(Minecraft client) {

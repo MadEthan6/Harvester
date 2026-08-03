@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.8.0 - 2026-08-03
+
+- Restored crosshair-first farming while holding right-click or left-click,
+  matching the responsive targeted workflow from the 1.3/1.4 releases.
+- Expanded automatic farming from a one-block radius to four horizontal and
+  two vertical blocks, while still enforcing normal player reach.
+- Reduced Safe farm timing from 8 to 4 ticks and Trusted timing from 2 ticks to
+  every tick; Safe Fast Place now uses a one-tick minimum delay.
+
 ## 1.7.1 - 2026-08-03
 
 - Fixed harvesting changing only the predicted client world without sending a

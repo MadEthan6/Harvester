@@ -1,6 +1,6 @@
 # Fabric Harvester
 
-Fabric Harvester 1.7.1 is a fully client-side Fabric mod for Minecraft 26.2.
+Fabric Harvester 1.8.0 is a fully client-side Fabric mod for Minecraft 26.2.
 It provides Fast Break, Fast Place, and reliable automatic farming tools
 through Minecraft's standard remappable controls. It has no accounts, hosted
 backend, database, or telemetry.
@@ -19,11 +19,11 @@ starts off after joining, disconnecting, changing dimensions, or dying.
 
 ## Profiles
 
-Safe is selected on remote servers. It allows one harvest every 8 ticks, keeps
+Safe is selected on remote servers. It allows one farm action every 4 ticks, keeps
 only one crop operation in flight, and enforces minimum Fast Break and Fast
-Place delays of 1 and 2 ticks.
+Place delays of 1 tick each.
 
-Trusted is selected in singleplayer. It allows one harvest every 2 ticks and
+Trusted is selected in singleplayer. It allows one farm action every tick and
 removes the Fast Break and Fast Place client cooldowns.
 
 Safe mode reduces packet frequency, but it does not guarantee that automation
@@ -32,7 +32,11 @@ is allowed. Always follow the rules of the server you join.
 ## Reliable farming
 
 Press `H` once and walk around a farm to keep farming enabled; press it again
-to stop. Farming supports wheat, carrots, potatoes, and beetroots. It harvests
+to stop. The scan now covers the full normal interaction reach (four blocks
+horizontally and two vertically). Holding right-click or left-click while
+looking directly at a mature crop gives that crop priority, matching the quick
+targeted workflow from the older releases. Farming supports wheat, carrots,
+potatoes, and beetroots. It harvests
 mature crops, plants an available supported seed on empty farmland, and tills
 dirt that has exactly two or three horizontally adjacent farmland blocks. A
 hoe is selected temporarily and its durability change is validated before the
@@ -63,8 +67,8 @@ Minecraft 26.2 requires Java 25. Build and verify the release with:
 ```
 
 On Windows, use `gradlew.bat clean release`. The distributable mapping-free
-JAR is written to `build/libs/fabric_harvester-1.7.1.jar`; its SHA-256 file is
-written to `build/checksums/fabric_harvester-1.7.1.jar.sha256`.
+JAR is written to `build/libs/fabric_harvester-1.8.0.jar`; its SHA-256 file is
+written to `build/checksums/fabric_harvester-1.8.0.jar.sha256`.
 
 ## License
 
