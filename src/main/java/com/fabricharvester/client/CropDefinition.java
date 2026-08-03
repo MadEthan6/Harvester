@@ -15,4 +15,11 @@ public record CropDefinition(Block cropBlock, Item plantingItem) {
     public boolean isReplanted(BlockState state) {
         return state.is(cropBlock) && !isMature(state);
     }
+
+    public int age(BlockState state) {
+        if (!state.is(cropBlock) || !(cropBlock instanceof CropBlock crop)) {
+            return -1;
+        }
+        return crop.getAge(state);
+    }
 }

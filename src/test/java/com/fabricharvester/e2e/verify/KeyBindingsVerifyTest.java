@@ -16,6 +16,7 @@ public class KeyBindingsVerifyTest {
         ModKeyBindings.setFastBreakEnabled(false);
         ModKeyBindings.setFastPlaceEnabled(false);
         ModKeyBindings.setHarvestActive(false);
+        ModKeyBindings.setBoneMealEnabled(false);
     }
 
     @Test
@@ -23,6 +24,7 @@ public class KeyBindingsVerifyTest {
         assertEquals("key.fabric_harvester.fast_break", ModKeyBindings.KEY_FAST_BREAK);
         assertEquals("key.fabric_harvester.fast_place", ModKeyBindings.KEY_FAST_PLACE);
         assertEquals("key.fabric_harvester.harvest", ModKeyBindings.KEY_HARVEST);
+        assertEquals("key.fabric_harvester.bone_meal", ModKeyBindings.KEY_BONE_MEAL);
         assertEquals("key.fabric_harvester.profile", ModKeyBindings.KEY_PROFILE);
         assertEquals("key.fabric_harvester.emergency_stop", ModKeyBindings.KEY_EMERGENCY_STOP);
     }
@@ -32,6 +34,7 @@ public class KeyBindingsVerifyTest {
         assertFalse(ModKeyBindings.isFastBreakEnabled());
         assertFalse(ModKeyBindings.isFastPlaceEnabled());
         assertFalse(ModKeyBindings.isHarvestActive());
+        assertFalse(ModKeyBindings.isBoneMealEnabled());
     }
 
     @Test
@@ -44,6 +47,9 @@ public class KeyBindingsVerifyTest {
 
         ModKeyBindings.setHarvestActive(true);
         assertTrue(ModKeyBindings.isHarvestActive());
+
+        ModKeyBindings.setBoneMealEnabled(true);
+        assertTrue(ModKeyBindings.isBoneMealEnabled());
 
         ModKeyBindings.setFastBreakEnabled(false);
         assertFalse(ModKeyBindings.isFastBreakEnabled());
@@ -59,6 +65,7 @@ public class KeyBindingsVerifyTest {
         assertTrue(jsonContent.contains("\"key.fabric_harvester.fast_break\""), "Must contain fast_break key");
         assertTrue(jsonContent.contains("\"key.fabric_harvester.fast_place\""), "Must contain fast_place key");
         assertTrue(jsonContent.contains("\"key.fabric_harvester.harvest\""), "Must contain harvest key");
+        assertTrue(jsonContent.contains("\"key.fabric_harvester.bone_meal\""), "Must contain bone-meal key");
         assertTrue(jsonContent.contains("\"key.fabric_harvester.profile\""), "Must contain profile key");
         assertTrue(jsonContent.contains("\"key.fabric_harvester.emergency_stop\""), "Must contain emergency key");
         assertTrue(jsonContent.contains("\"hud.fabric_harvester.status\""), "Must contain HUD status text");

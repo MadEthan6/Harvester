@@ -3,7 +3,7 @@
   "id": "fabric_harvester",
   "version": "${version}",
   "name": "Fabric Harvester",
-  "description": "Client-side crop harvesting and placement utilities with safety profiles, confirmation, retries, and emergency shutdown.",
+  "description": "Client-side harvesting, planting, tilling, and bone-meal automation with safety profiles, confirmation, retries, and emergency shutdown.",
   "authors": [
     "MadEthan6"
   ],

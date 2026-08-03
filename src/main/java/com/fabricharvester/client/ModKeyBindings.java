@@ -15,6 +15,7 @@ public final class ModKeyBindings {
     public static final String KEY_FAST_BREAK = "key.fabric_harvester.fast_break";
     public static final String KEY_FAST_PLACE = "key.fabric_harvester.fast_place";
     public static final String KEY_HARVEST = "key.fabric_harvester.harvest";
+    public static final String KEY_BONE_MEAL = "key.fabric_harvester.bone_meal";
     public static final String KEY_PROFILE = "key.fabric_harvester.profile";
     public static final String KEY_EMERGENCY_STOP = "key.fabric_harvester.emergency_stop";
 
@@ -25,13 +26,14 @@ public final class ModKeyBindings {
     public static KeyMapping fastBreakKey;
     public static KeyMapping fastPlaceKey;
     public static KeyMapping harvestKey;
+    public static KeyMapping boneMealKey;
     public static KeyMapping profileKey;
     public static KeyMapping emergencyStopKey;
 
     private static final AtomicBoolean fastBreakEnabled = new AtomicBoolean(false);
     private static final AtomicBoolean fastPlaceEnabled = new AtomicBoolean(false);
     private static final AtomicBoolean harvestActive = new AtomicBoolean(false);
-    private static boolean harvestSuppressedUntilRelease;
+    private static final AtomicBoolean boneMealEnabled = new AtomicBoolean(false);
 
     private ModKeyBindings() {
     }
@@ -40,6 +42,7 @@ public final class ModKeyBindings {
         fastBreakKey = register(KEY_FAST_BREAK, GLFW.GLFW_KEY_B);
         fastPlaceKey = register(KEY_FAST_PLACE, GLFW.GLFW_KEY_V);
         harvestKey = register(KEY_HARVEST, GLFW.GLFW_KEY_H);
+        boneMealKey = register(KEY_BONE_MEAL, GLFW.GLFW_KEY_N);
         profileKey = register(KEY_PROFILE, GLFW.GLFW_KEY_P);
         emergencyStopKey = register(KEY_EMERGENCY_STOP, GLFW.GLFW_KEY_K);
     }
@@ -74,7 +77,20 @@ public final class ModKeyBindings {
                 controller,
                 "message.fabric_harvester.fast_place"
         );
-        updateHarvestState();
+        consumeToggle(
+                harvestKey,
+                harvestActive,
+                client,
+                controller,
+                "message.fabric_harvester.farming"
+        );
+        consumeToggle(
+                boneMealKey,
+                boneMealEnabled,
+                client,
+                controller,
+                "message.fabric_harvester.bone_meal"
+        );
     }
 
     public static boolean isFastBreakEnabled() {
@@ -89,6 +105,10 @@ public final class ModKeyBindings {
         return harvestActive.get();
     }
 
+    public static boolean isBoneMealEnabled() {
+        return boneMealEnabled.get();
+    }
+
     public static void setFastBreakEnabled(boolean enabled) {
         fastBreakEnabled.set(enabled);
     }
@@ -101,19 +121,16 @@ public final class ModKeyBindings {
         harvestActive.set(active);
     }
 
+    public static void setBoneMealEnabled(boolean enabled) {
+        boneMealEnabled.set(enabled);
+    }
+
     public static void resetStates() {
         fastBreakEnabled.set(false);
         fastPlaceEnabled.set(false);
         harvestActive.set(false);
-    }
-
-    public static void suppressHarvestUntilRelease() {
-        harvestSuppressedUntilRelease = true;
-        harvestActive.set(false);
-    }
-
-    static boolean isHarvestSuppressedUntilRelease() {
-        return harvestSuppressedUntilRelease;
+        boneMealEnabled.set(false);
+        drainToggleKeys();
     }
 
     private static KeyMapping register(String translationKey, int defaultKey) {
@@ -163,24 +180,11 @@ public final class ModKeyBindings {
         }
     }
 
-    private static void updateHarvestState() {
-        if (harvestKey == null) {
-            harvestActive.set(false);
-            return;
-        }
-        if (harvestSuppressedUntilRelease) {
-            harvestActive.set(false);
-            if (!harvestKey.isDown()) {
-                harvestSuppressedUntilRelease = false;
-            }
-            return;
-        }
-        harvestActive.set(harvestKey.isDown());
-    }
-
     private static void drainToggleKeys() {
         drain(fastBreakKey);
         drain(fastPlaceKey);
+        drain(harvestKey);
+        drain(boneMealKey);
         drain(profileKey);
     }
 

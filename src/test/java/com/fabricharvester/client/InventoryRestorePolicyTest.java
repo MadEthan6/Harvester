@@ -31,4 +31,17 @@ class InventoryRestorePolicyTest {
         assertFalse(InventoryRestorePolicy.canRestoreInventorySwap(2, 2, false, true));
         assertFalse(InventoryRestorePolicy.canRestoreInventorySwap(3, 2, true, true));
     }
+
+    @Test
+    void toolRestoreAcceptsOneDurabilityUseAndBreakage() {
+        assertTrue(InventoryRestorePolicy.toolRemainderIsExpected(1, 1, 4, 5, 250, true));
+        assertTrue(InventoryRestorePolicy.toolRemainderIsExpected(1, 0, 249, 0, 250, false));
+    }
+
+    @Test
+    void toolRestoreRejectsUnexpectedMutation() {
+        assertFalse(InventoryRestorePolicy.toolRemainderIsExpected(1, 1, 4, 6, 250, true));
+        assertFalse(InventoryRestorePolicy.toolRemainderIsExpected(1, 1, 4, 5, 250, false));
+        assertFalse(InventoryRestorePolicy.toolRemainderIsExpected(1, 0, 20, 0, 250, false));
+    }
 }

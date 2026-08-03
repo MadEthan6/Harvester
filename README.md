@@ -1,7 +1,7 @@
 # Fabric Harvester
 
-Fabric Harvester 1.6.0 is a fully client-side Fabric mod for Minecraft 26.2.
-It provides Fast Break, Fast Place, and reliable hold-to-harvest/replant tools
+Fabric Harvester 1.7.1 is a fully client-side Fabric mod for Minecraft 26.2.
+It provides Fast Break, Fast Place, and reliable automatic farming tools
 through Minecraft's standard remappable controls. It has no accounts, hosted
 backend, database, or telemetry.
 
@@ -9,7 +9,8 @@ backend, database, or telemetry.
 
 - `B`: toggle Fast Break
 - `V`: toggle Fast Place
-- `H`: hold to harvest mature nearby crops
+- `H`: toggle nearby harvesting, empty-farmland planting, and dirt tilling
+- `N`: toggle automatic bone meal separately
 - `P`: cycle Safe and Trusted automation profiles
 - `K`: immediately stop all automation and cancel pending work
 
@@ -28,17 +29,29 @@ removes the Fast Break and Fast Place client cooldowns.
 Safe mode reduces packet frequency, but it does not guarantee that automation
 is allowed. Always follow the rules of the server you join.
 
-## Reliable harvesting
+## Reliable farming
 
-Harvesting supports wheat, carrots, potatoes, and beetroots. The client waits
-up to 10 ticks for a break to be confirmed before planting, restores temporary
-inventory selections, confirms the replacement crop, and retries twice with
-profile-specific backoff. Releasing `H` prevents new harvests while allowing
-an already-started replant to finish.
+Press `H` once and walk around a farm to keep farming enabled; press it again
+to stop. Farming supports wheat, carrots, potatoes, and beetroots. It harvests
+mature crops, plants an available supported seed on empty farmland, and tills
+dirt that has exactly two or three horizontally adjacent farmland blocks. A
+hoe is selected temporarily and its durability change is validated before the
+original inventory selection is restored.
+
+Automatic bone meal is intentionally independent: press `N` to turn it on or
+off without changing the `H` farming setting. It grows nearby immature
+supported crops one confirmed interaction at a time.
+
+Crop breaks and item uses are sent without changing crops or inventory locally,
+so replanting cannot spend a seed until the server confirms that the crop is
+gone. The client waits up to 10 ticks for confirmation. Harvest/replant keeps
+its two retries with profile-specific backoff, and planting, tilling, and bone
+meal actions all restore temporary inventory selections before continuing.
 
 Operations stop safely after an emergency stop, disconnect, dimension change,
 death, opened screen, lost reach, missing farmland, or an unexpected inventory
-change. The localized HUD and overlay warnings describe active state and
+change. The localized HUD shows farming and bone meal independently, while
+overlay warnings describe missing seeds, hoes, bone meal, timeouts, and other
 actionable failures.
 
 ## Build
@@ -50,10 +63,9 @@ Minecraft 26.2 requires Java 25. Build and verify the release with:
 ```
 
 On Windows, use `gradlew.bat clean release`. The distributable mapping-free
-JAR is written to `build/libs/fabric_harvester-1.6.0.jar`; its SHA-256 file is
-written to `build/checksums/fabric_harvester-1.6.0.jar.sha256`.
+JAR is written to `build/libs/fabric_harvester-1.7.1.jar`; its SHA-256 file is
+written to `build/checksums/fabric_harvester-1.7.1.jar.sha256`.
 
 ## License
 
 CC0-1.0. See [LICENSE](LICENSE).
-

@@ -17,21 +17,28 @@ class SessionStateTest {
         ModKeyBindings.setFastBreakEnabled(true);
         ModKeyBindings.setFastPlaceEnabled(true);
         ModKeyBindings.setHarvestActive(true);
+        ModKeyBindings.setBoneMealEnabled(true);
 
         ModKeyBindings.resetStates();
 
         assertFalse(ModKeyBindings.isFastBreakEnabled());
         assertFalse(ModKeyBindings.isFastPlaceEnabled());
         assertFalse(ModKeyBindings.isHarvestActive());
+        assertFalse(ModKeyBindings.isBoneMealEnabled());
     }
 
     @Test
-    void harvestCanBeSuppressedUntilPhysicalRelease() {
+    void farmingAndBoneMealRemainIndependentSettings() {
         ModKeyBindings.setHarvestActive(true);
-        ModKeyBindings.suppressHarvestUntilRelease();
+        ModKeyBindings.setBoneMealEnabled(false);
+
+        assertTrue(ModKeyBindings.isHarvestActive());
+        assertFalse(ModKeyBindings.isBoneMealEnabled());
+
+        ModKeyBindings.setHarvestActive(false);
+        ModKeyBindings.setBoneMealEnabled(true);
 
         assertFalse(ModKeyBindings.isHarvestActive());
-        assertTrue(ModKeyBindings.isHarvestSuppressedUntilRelease());
+        assertTrue(ModKeyBindings.isBoneMealEnabled());
     }
 }
-

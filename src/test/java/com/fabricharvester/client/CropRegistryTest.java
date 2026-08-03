@@ -21,9 +21,11 @@ class CropRegistryTest {
     void detectsWheatMaturity() {
         CropDefinition wheat = CropRegistry.find(Blocks.WHEAT).orElseThrow();
         assertFalse(wheat.isMature(Blocks.WHEAT.defaultBlockState()));
+        assertTrue(wheat.age(Blocks.WHEAT.defaultBlockState()) == 0);
         assertTrue(wheat.isMature(
                 Blocks.WHEAT.defaultBlockState().setValue(CropBlock.AGE, CropBlock.MAX_AGE)
         ));
+        assertTrue(wheat.age(Blocks.DIRT.defaultBlockState()) == -1);
     }
 
     @Test

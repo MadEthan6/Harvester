@@ -50,7 +50,12 @@ public final class AutomationController {
         ModKeyBindings.onClientTick(client, this);
         FastBreakManager.tick(client, profile.blockBreakCooldown());
         FastPlaceManager.tick(client, profile.itemUseCooldown());
-        harvester.tick(client, ModKeyBindings.isHarvestActive(), profile);
+        harvester.tick(
+                client,
+                ModKeyBindings.isHarvestActive(),
+                ModKeyBindings.isBoneMealEnabled(),
+                profile
+        );
     }
 
     public void cycleProfile(Minecraft client) {
@@ -63,7 +68,6 @@ public final class AutomationController {
 
     public void emergencyStop(Minecraft client, boolean notify) {
         ModKeyBindings.resetStates();
-        ModKeyBindings.suppressHarvestUntilRelease();
         harvester.cancel();
         if (notify) {
             notify(client, "message.fabric_harvester.emergency_stop", ChatFormatting.RED);
@@ -86,6 +90,7 @@ public final class AutomationController {
         return ModKeyBindings.isFastBreakEnabled()
                 || ModKeyBindings.isFastPlaceEnabled()
                 || ModKeyBindings.isHarvestActive()
+                || ModKeyBindings.isBoneMealEnabled()
                 || harvester.hasPendingOperation();
     }
 
@@ -95,7 +100,8 @@ public final class AutomationController {
                 Component.translatable(profile.translationKey()),
                 stateText(ModKeyBindings.isFastBreakEnabled()),
                 stateText(ModKeyBindings.isFastPlaceEnabled()),
-                stateText(ModKeyBindings.isHarvestActive() || harvester.hasPendingOperation())
+                stateText(ModKeyBindings.isHarvestActive() || harvester.hasPendingFarmingOperation()),
+                stateText(ModKeyBindings.isBoneMealEnabled() || harvester.hasPendingBoneMealOperation())
         );
     }
 
@@ -122,7 +128,6 @@ public final class AutomationController {
 
     private void resetSession() {
         ModKeyBindings.resetStates();
-        ModKeyBindings.suppressHarvestUntilRelease();
         harvester.cancel();
         deathHandled = false;
     }
