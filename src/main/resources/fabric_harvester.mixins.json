@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "com.fabricharvester.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [],
+  "client": [
+    "ClientPlayerInteractionManagerAccessor",
+    "MinecraftClientAccessor"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

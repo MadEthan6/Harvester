@@ -1,10 +1,14 @@
 plugins {
-	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+	id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
 	id 'maven-publish'
 }
 
 version = project.mod_version
 group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
 
 repositories {
 	maven {
@@ -14,25 +18,11 @@ repositories {
 	mavenCentral()
 }
 
-loom {
-	mods {
-		"speedmine" {
-			sourceSet sourceSets.main
-		}
-	}
-
-	mixin {
-		defaultRefmapName = "speedmine-refmap.json"
-	}
-}
-
 dependencies {
-	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
-
-	// Fabric API. This is technically optional, but you probably want it anyway.
-	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
 	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.0'
 	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.0'
@@ -53,41 +43,64 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.release = 25
+	it.options.release = 21
 }
 
 java {
-	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-	// if it is present.
-	// If you remove this line, sources will not be generated.
 	withSourcesJar()
-
-	sourceCompatibility = JavaVersion.VERSION_25
-	targetCompatibility = JavaVersion.VERSION_25
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
 }
 
 jar {
 	def projectName = project.name
 	inputs.property "projectName", projectName
+}
 
-	from("LICENSE") {
-		rename { "${it}_$projectName"}
+tasks.register('generateReleases') {
+	group = 'build'
+	description = 'Compiles mod JAR for MC 1.21.x and creates/updates RELEASES.md release chart.'
+
+	def jarTask = tasks.findByName('remapJar') ?: tasks.jar
+	dependsOn jarTask
+
+	def releasesFile = file("RELEASES.md")
+
+	inputs.file(jarTask.archiveFile)
+	outputs.file(releasesFile)
+
+	doLast {
+		def targetJarTask = tasks.findByName('remapJar') ?: tasks.jar
+		def jarFile = targetJarTask.archiveFile.get().asFile
+		def relativeJarPath = project.projectDir.toPath().relativize(jarFile.toPath()).toString().replace('\\', '/')
+		def targetMcVersion = project.findProperty("minecraft_version") ?: "1.21.4"
+		def modVersion = project.version.toString()
+		def modName = project.findProperty("archives_base_name") ?: project.name
+		def timestamp = java.time.Instant.now().toString()
+
+		def content = """# Fabric Harvester Release Chart
+
+| Target MC Version | Mod Version | Built Jar Artifact | Status | Built Timestamp |
+|---|---|---|---|---|
+| 1.21.x | \${modVersion} | \${relativeJarPath} | Release Ready | \${timestamp} |
+
+## Release Details
+
+### Minecraft 1.21.x
+- **Mod Name**: \${modName}
+- **Mod Version**: `\${modVersion}`
+- **Target Minecraft Version**: `1.21.x` (MC \${targetMcVersion})
+- **Artifact Path**: `\${relativeJarPath}`
+- **Build Task**: `generateReleases`
+"""
+
+		releasesFile.text = content
+		logger.lifecycle("[generateReleases] Successfully updated RELEASES.md with artifact path: \${relativeJarPath}")
 	}
 }
 
-// configure the maven publication
-publishing {
-	publications {
-		create("mavenJava", MavenPublication) {
-			from components.java
-		}
-	}
-
-	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
-	repositories {
-		// Add repositories to publish to here.
-		// Notice: This block does NOT have the same function as the block in the top level.
-		// The repositories here will be used for publishing your artifact, not for
-		// retrieving dependencies.
-	}
+tasks.register('release') {
+	group = 'build'
+	description = 'Alias for generateReleases.'
+	dependsOn tasks.generateReleases
 }
