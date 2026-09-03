@@ -42,7 +42,7 @@ jobs:
       - name: Upload remapped JAR and checksum
         uses: actions/upload-artifact@v6
         with:
-          name: fabric_harvester-*
+          name: fabric_harvester
           path: |
             build/libs/fabric_harvester-*.jar
             build/checksums/fabric_harvester-*.jar.sha256
