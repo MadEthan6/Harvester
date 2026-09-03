@@ -42,9 +42,9 @@ jobs:
       - name: Upload remapped JAR and checksum
         uses: actions/upload-artifact@v6
         with:
-          name: fabric-harvester-1.6.0-${{ runner.os }}
+          name: fabric_harvester-*
           path: |
-            build/libs/fabric_harvester-1.6.0.jar
-            build/checksums/fabric_harvester-1.6.0.jar.sha256
+            build/libs/fabric_harvester-*.jar
+            build/checksums/fabric_harvester-*.jar.sha256
           if-no-files-found: error
 
