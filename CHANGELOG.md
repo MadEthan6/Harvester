@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.8.1 - 09/20/2026
+
+- Updated project to Minecraft 26.3
+- Fixed deprecations caused by the Minecraft version bump
+
 ## 1.8.0 - 2026-08-03
 
 - Restored crosshair-first farming while holding right-click or left-click,
