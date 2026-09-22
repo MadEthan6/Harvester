@@ -128,7 +128,7 @@ public final class HarvesterManager {
             return true;
         }
 
-        client.player.swing(InteractionHand.MAIN_HAND);
+        client.player.swing(InteractionHand.MAIN_HAND, net.minecraft.world.item.component.SwingAnimation.DEFAULT, true);
         pendingHarvest = new PendingHarvest(
                 target.position(),
                 target.definition(),
@@ -366,7 +366,7 @@ public final class HarvesterManager {
                 sent = false;
             } else {
                 client.player.connection.send(FarmUseRequest.create(selection.hand(), hitResult));
-                client.player.swing(selection.hand());
+                client.player.swing(selection.hand(), net.minecraft.world.item.component.SwingAnimation.DEFAULT, true);
                 sent = true;
             }
         } finally {
