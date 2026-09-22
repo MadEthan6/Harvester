@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.8.1 - 09/22/2024
+
+- Upgraded to Minecraft 26.3.
+- Updated versions in build.gradle, gradle.properties, fabric.mod.json, and documentation.
+- Fixed API deprecations for SwingAnimation and InputConstants.KEYSYM in HarvesterManager.java and ModKeyBindings.java.
+
 ## 1.8.0 - 2026-08-03
 
 - Restored crosshair-first farming while holding right-click or left-click,
