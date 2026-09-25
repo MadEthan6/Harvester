@@ -1,5 +1,17 @@
 # Changelog
 
+**09/25/2026**
+
+## 1.8.1
+
+- Updated Minecraft version to 26.3
+- Updated Fabric API version to 0.161.0+26.3
+- Patched API breakages:
+  - Fixed `SwingAnimation` deprecations in `HarvesterManager.java`.
+  - Migrated from `org.lwjgl.glfw.GLFW` to `InputConstants` in `ModKeyBindings.java`.
+  - Fixed record accessor usage in `FarmUseRequestTest.java` (using `hand()`, `hitResult()`, `sequence()` instead of getters).
+
+
 ## 1.8.0 - 2026-08-03
 
 - Restored crosshair-first farming while holding right-click or left-click,
