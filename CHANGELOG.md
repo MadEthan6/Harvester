@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.8.1 - 09/26/2026
+
+- Updated Minecraft version to 26.3
+- Updated Fabric API version to 0.161.0+26.3
+
 ## 1.8.0 - 2026-08-03
 
 - Restored crosshair-first farming while holding right-click or left-click,
