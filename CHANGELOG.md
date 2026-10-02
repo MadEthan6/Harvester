@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.8.1 - 10/02/2026
+
+- Bumped Minecraft version to 26.3.
+- Migrated GLFW key bindings to InputConstants.
+- Updated client.player.swing usages for Minecraft 26.3.
+
 ## 1.8.0 - 2026-08-03
 
 - Restored crosshair-first farming while holding right-click or left-click,
