@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.8.1 - 10/03/2026
+
+- Updated to Minecraft 26.3 and Fabric API 0.161.0+26.3.
+- Fixed key bindings to use InputConstants.
+- Fixed swing animation method signatures.
+
 ## 1.8.0 - 2026-08-03
 
 - Restored crosshair-first farming while holding right-click or left-click,
