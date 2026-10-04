@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.8.1 - 10/04/2026
+
+- Bump Minecraft version to 26.3 and update Fabric API to 0.161.0+26.3.
+- Update keybindings to use InputConstants instead of GLFW.
+- Update getHand() to hand() for InteractionHand.
+- Update client.player.swing to include SwingAnimation.DEFAULT and a boolean flag.
+
 ## 1.8.0 - 2026-08-03
 
 - Restored crosshair-first farming while holding right-click or left-click,
