@@ -7,7 +7,7 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import org.lwjgl.glfw.GLFW;
+import com.mojang.blaze3d.platform.InputConstants;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -39,12 +39,12 @@ public final class ModKeyBindings {
     }
 
     public static void register() {
-        fastBreakKey = register(KEY_FAST_BREAK, GLFW.GLFW_KEY_B);
-        fastPlaceKey = register(KEY_FAST_PLACE, GLFW.GLFW_KEY_V);
-        harvestKey = register(KEY_HARVEST, GLFW.GLFW_KEY_H);
-        boneMealKey = register(KEY_BONE_MEAL, GLFW.GLFW_KEY_N);
-        profileKey = register(KEY_PROFILE, GLFW.GLFW_KEY_P);
-        emergencyStopKey = register(KEY_EMERGENCY_STOP, GLFW.GLFW_KEY_K);
+        fastBreakKey = register(KEY_FAST_BREAK, InputConstants.KEY_B);
+        fastPlaceKey = register(KEY_FAST_PLACE, InputConstants.KEY_V);
+        harvestKey = register(KEY_HARVEST, InputConstants.KEY_H);
+        boneMealKey = register(KEY_BONE_MEAL, InputConstants.KEY_N);
+        profileKey = register(KEY_PROFILE, InputConstants.KEY_P);
+        emergencyStopKey = register(KEY_EMERGENCY_STOP, InputConstants.KEY_K);
     }
 
     public static void onClientTick(Minecraft client) {
@@ -136,7 +136,7 @@ public final class ModKeyBindings {
     private static KeyMapping register(String translationKey, int defaultKey) {
         return KeyMappingHelper.registerKeyMapping(new KeyMapping(
                 translationKey,
-                InputConstants.Type.KEYSYM,
+                InputConstants.Type.KEYBOARD,
                 defaultKey,
                 KEY_CATEGORY
         ));
