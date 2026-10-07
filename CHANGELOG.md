@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.8.1 - 10/07/2026
+
+- Updated to Minecraft 26.3 and replaced deprecated Spigot/Paper API and Fabric API functions.
+
 ## 1.8.0 - 2026-08-03
 
 - Restored crosshair-first farming while holding right-click or left-click,
