@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.8.1 - 10/10/2026
+
+- Upgraded to Minecraft 26.3.
+- Updated InputConstants and SwingAnimation usages for MC 26.3 compatibility.
+- Updated Record accessors in network packets for MC 26.3 compatibility.
+
 ## 1.8.0 - 2026-08-03
 
 - Restored crosshair-first farming while holding right-click or left-click,
