@@ -62,7 +62,7 @@ tasks.withType(AbstractArchiveTask).configureEach {
 	reproducibleFileOrder = true
 }
 
-// Minecraft 26.2 is distributed with official names, so Loom's mapping-free
+// Minecraft 26.3 is distributed with official names, so Loom's mapping-free
 // plugin produces the distributable artifact directly from the jar task.
 def releaseJar = tasks.named("jar").flatMap { it.archiveFile }
 def releaseChecksum = layout.buildDirectory.file(

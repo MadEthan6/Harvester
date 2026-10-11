@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.8.1 - 2026-10-11
+
+- Upgraded and pinned the mod to Minecraft 26.3, Fabric Loader 0.19.3,
+  Fabric API 0.162.0+26.3, Loom 1.17, and Java 25.
+- Patched Minecraft 26.3 API deprecations.
+
 ## 1.8.0 - 2026-08-03
 
 - Restored crosshair-first farming while holding right-click or left-click,
