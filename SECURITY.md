@@ -4,7 +4,7 @@
 
 | Version | Minecraft | Supported |
 |---|---|---|
-| 1.6.x | 26.2 | Yes |
+| 1.6.x | 26.3 | Yes |
 | Earlier | Earlier releases | No |
 
 ## Reporting a vulnerability
