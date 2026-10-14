@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.8.1 - 10/14/2026
+
+- Updated Harvester to Minecraft 26.3.
+- Resolved API breakages caused by Minecraft 26.3 updates, including:
+  - Migrating `org.lwjgl.glfw.GLFW` key bindings to `com.mojang.blaze3d.platform.InputConstants`.
+  - Migrating packet classes to use Record accessors (`hand()`, `hitResult()`, `sequence()`).
+  - Fixing `client.player.swing` by adding `SwingAnimation.DEFAULT` and boolean flag.
+
 ## 1.8.0 - 2026-08-03
 
 - Restored crosshair-first farming while holding right-click or left-click,
