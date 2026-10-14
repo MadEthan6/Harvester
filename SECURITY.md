@@ -4,6 +4,7 @@
 
 | Version | Minecraft | Supported |
 |---|---|---|
+| 1.8.1 | 26.3 | Yes |
 | 1.6.x | 26.2 | Yes |
 | Earlier | Earlier releases | No |
 
