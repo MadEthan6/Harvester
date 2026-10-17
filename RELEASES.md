@@ -2,6 +2,7 @@
 
 | Minecraft | Mod | Artifact |
 |---|---|---|
+| 26.3 | 1.8.1 | `build/libs/fabric_harvester-1.8.1.jar` |
 | 26.2 | 1.8.0 | `build/libs/fabric_harvester-1.8.0.jar` |
 
 Run `./gradlew clean release` (or `gradlew.bat clean release` on Windows)

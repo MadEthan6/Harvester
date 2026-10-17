@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.8.1 - 10/17/2026
+
+- Updated Minecraft version to 26.3 and patched API changes.
+
 ## 1.8.0 - 2026-08-03
 
 - Restored crosshair-first farming while holding right-click or left-click,
