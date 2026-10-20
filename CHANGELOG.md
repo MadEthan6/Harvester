@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.8.1 - 10/20/2026
+
+- Updated Harvester to Minecraft 26.3, Fabric API 0.164.0+26.3.
+- Migrated keyboard bindings to `com.mojang.blaze3d.platform.InputConstants` equivalents.
+- Updated interaction swing API logic.
+- Updated Record packet parameters for network request compatibility.
+
 ## 1.8.0 - 2026-08-03
 
 - Restored crosshair-first farming while holding right-click or left-click,
