@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.8.1 - 10/24/2026
+
+- Upgraded the mod to Minecraft 26.3 and Fabric API 0.165.0+26.3.
+- Migrated keyboard constants to InputConstants.
+- Updated ServerboundUseItemOnPacket field access and swing animations to match 26.3 APIs.
+
 ## 1.8.0 - 2026-08-03
 
 - Restored crosshair-first farming while holding right-click or left-click,
