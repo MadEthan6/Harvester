@@ -24,7 +24,7 @@ class FarmUseRequestTest {
         ServerboundUseItemOnPacket packet = FarmUseRequest.create(InteractionHand.OFF_HAND, hit);
 
         assertEquals(InteractionHand.OFF_HAND, packet.hand());
-        assertEquals(hit, packet.getHitResult());
-        assertEquals(0, packet.getSequence());
+        assertEquals(hit, packet.hitResult());
+        assertEquals(0, packet.sequence());
     }
 }
