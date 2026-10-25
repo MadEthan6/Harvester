@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.8.1 - 10/25/2026
+
+- Updated Harvester to Minecraft 26.3 and Fabric API 0.165.0+26.3.
+- Migrated key bindings from `GLFW` to `InputConstants`.
+- Added required swing animation arguments to `client.player.swing()`.
+
 ## 1.8.0 - 2026-08-03
 
 - Restored crosshair-first farming while holding right-click or left-click,
