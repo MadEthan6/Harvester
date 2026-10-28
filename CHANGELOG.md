@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.8.1 - 10/28/2026
+
+- Upgraded and pinned the mod to Minecraft 26.3 and Fabric API 0.165.0+26.3.
+- Migrated `GLFW` key bindings to `InputConstants`.
+- Adapted to record accessors for `ServerboundUseItemOnPacket`.
+- Updated `client.player.swing` signatures.
+
 ## 1.8.0 - 2026-08-03
 
 - Restored crosshair-first farming while holding right-click or left-click,
