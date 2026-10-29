@@ -1,5 +1,13 @@
 # Changelog
 
+**10/29/2026**
+
+## 1.8.1 - 2026-10-29
+
+- Bumped Minecraft to 26.3 and updated API and Java configurations accordingly.
+- Fixed key binding registrations for Minecraft 26.3 (migrated from `GLFW` keys to `InputConstants.KEY_*` and `InputConstants.Type.KEYBOARD`).
+- Fixed `client.player.swing(...)` API signature for Minecraft 26.3.
+
 ## 1.8.0 - 2026-08-03
 
 - Restored crosshair-first farming while holding right-click or left-click,

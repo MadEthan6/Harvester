@@ -25,8 +25,8 @@ If applicable, add screenshots to help explain your problem.
 
 **Desktop (please complete the following information):**
  - OS: [e.g. iOS]
- - Minecraft Version: [e.g. 26.2]
- - Mod Version: [e.g. 1.0.0]
+ - Minecraft Version: [e.g. 26.3]
+ - Mod Version: [e.g. 1.8.1]
 
 **Additional context**
 Add any other context about the problem here.
