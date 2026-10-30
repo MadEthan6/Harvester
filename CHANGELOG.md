@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.8.1 - 2026-08-03
+
+- Upgraded and pinned the mod to Minecraft 26.3 and Fabric API 0.165.0+26.3.
+- Fixed key binding initialization syntax for `InputConstants.Type.KEYBOARD` changes.
+- Fixed `swing()` API calls for the new method signature expecting `SwingAnimation` and boolean parameters.
+- Fixed record accessor syntax for network packet fields (`hand()`, `hitResult()`, `sequence()`).
+
 ## 1.8.0 - 2026-08-03
 
 - Restored crosshair-first farming while holding right-click or left-click,
