@@ -1,6 +1,6 @@
 # Fabric Harvester Architecture
 
-Fabric Harvester is a client-only Fabric mod for Minecraft 26.2.
+Fabric Harvester is a client-only Fabric mod for Minecraft 26.3.
 
 ## Runtime components
 
