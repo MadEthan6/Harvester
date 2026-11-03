@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.8.1 - 11/03/2026
+
+- Update to Minecraft 26.3
+- Fix InputConstants.Type deprecations
+- Fix ServerboundUseItemOnPacket getters deprecations
+- Fix Player swing animation deprecations
+
 ## 1.8.0 - 2026-08-03
 
 - Restored crosshair-first farming while holding right-click or left-click,
