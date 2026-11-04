@@ -9,6 +9,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.component.SwingAnimation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
@@ -128,7 +129,7 @@ public final class HarvesterManager {
             return true;
         }
 
-        client.player.swing(InteractionHand.MAIN_HAND);
+        client.player.swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT, false);
         pendingHarvest = new PendingHarvest(
                 target.position(),
                 target.definition(),
@@ -366,7 +367,7 @@ public final class HarvesterManager {
                 sent = false;
             } else {
                 client.player.connection.send(FarmUseRequest.create(selection.hand(), hitResult));
-                client.player.swing(selection.hand());
+                client.player.swing(selection.hand(), SwingAnimation.DEFAULT, false);
                 sent = true;
             }
         } finally {
