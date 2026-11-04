@@ -1,6 +1,6 @@
 # Fabric Harvester
 
-Fabric Harvester 1.8.0 is a fully client-side Fabric mod for Minecraft 26.2.
+Fabric Harvester 1.8.1 is a fully client-side Fabric mod for Minecraft 26.3.
 It provides Fast Break, Fast Place, and reliable automatic farming tools
 through Minecraft's standard remappable controls. It has no accounts, hosted
 backend, database, or telemetry.
@@ -60,7 +60,7 @@ actionable failures.
 
 ## Build
 
-Minecraft 26.2 requires Java 25. Build and verify the release with:
+Minecraft 26.3 requires Java 25. Build and verify the release with:
 
 ```text
 ./gradlew clean release

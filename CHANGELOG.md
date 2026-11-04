@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.8.1 - 11/04/2026
+
+- Upgraded and pinned the mod to Minecraft 26.3 and Fabric API 0.165.2+26.3.
+- Fixed `ModKeyBindings` to use `InputConstants` instead of `GLFW` for Minecraft 26.3 key mappings.
+- Fixed `ServerboundUseItemOnPacket` usages in tests to use new record accessors.
+- Fixed `client.player.swing` calls in `HarvesterManager` to use the new `SwingAnimation` parameter.
+
 ## 1.8.0 - 2026-08-03
 
 - Restored crosshair-first farming while holding right-click or left-click,
